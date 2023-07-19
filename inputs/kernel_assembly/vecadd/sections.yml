@@ -1,0 +1,37 @@
+init:
+  - "80000000:80000068" # _start
+  - "80000354:80000398" # init_regs
+  - "800003a0:800003f8" # __init_tls
+  - "80000ae0:80000af0" # atexit
+  - "80000d20:80000db8" # __register_exitproc
+  - "800003fc:8000048c" # __libc_init_array
+  - "80000084:800000a0" # main
+fini:
+  - "800000a4:800000b0" # main
+  - "800008cc:80000adc" # __register_exitproc
+  - 0x8000039c
+workload_distr:
+  - "80000708:800008c8" # vx_spawn_kernel
+  - "80000260:8000026c"
+kernel_call_init:
+  - "800006dc:80000704" # spawn_kernel_all_cb
+  - "800004ec:80000624" # spawn_kernel_all_stub
+  - "80000628:800006d8" # spawn_kernel_rem_stub
+kernel_call_init_inner:
+  - "80000194:800001dc" # _pocl_kernel_vecadd_workgroup
+kernel_loops_bookkeeping:
+  - "800001e0:800001fc"
+  - "80000210:8000021c"
+  - "8000022c:80000244"
+  - "80000248:8000025c"
+kernel_memory_addressing:
+  - 0x80000200
+  - 0x80000204
+  - 0x8000020c
+  - 0x80000220
+  - 0x80000224
+  - 0x80000228
+kernel:
+  - 0x80000208
+memory_routines:
+  - "80000b28:80000d1c"

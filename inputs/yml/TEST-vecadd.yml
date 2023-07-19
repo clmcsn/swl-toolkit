@@ -1,0 +1,11 @@
+app       : vecadd
+driver    : simx
+OuterParams :
+  threads   : 4
+  warps     : 2
+  cores     : 2
+  clusters  : 1
+  l2cache   : True
+InnerParams :
+  workload_size : "1:1000:1"
+  local_worksize : "1:11:1"

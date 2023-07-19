@@ -1,0 +1,19 @@
+init:
+  - "80000000:80000004" # 2x instructions
+fini:
+  - 0x80000044
+workload_distr:
+  - "80000008:80000010" #  3x instructions
+kernel_call_init:
+  - "80000034:80000040" # spawn_kernel_all_cb
+kernel_call_init_inner:
+  - 0x8000002c
+  - 0x80000030
+kernel_loops_bookkeeping:
+  - 0x80000024
+kernel_memory_addressing:
+  - "80000018:80000020"
+kernel:
+  - 0x80000014
+memory_routines:
+  - "80000028:8000002c"

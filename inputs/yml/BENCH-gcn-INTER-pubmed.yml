@@ -1,0 +1,19 @@
+app       : gcnSynth
+driver    : simx
+OuterParams :
+  clusters  : "1:3"
+  threads   : "4:4"
+  warps     : "4:4"
+  cores     : "1:5"
+  l2cache   : True
+InnerParams :
+  benchmark : 
+    - AGGR
+    - LINEAR
+    - LAYER
+  dataset   :
+    - pubmed
+  layer     :
+    - INTER
+  hidden_size : "8:5"
+  batch_size  : -1

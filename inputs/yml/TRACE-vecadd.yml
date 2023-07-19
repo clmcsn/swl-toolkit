@@ -1,0 +1,10 @@
+# python3 launcher.py -f inputs/yml/TRACE-vecadd.yml -p /vortex/
+app       : vecadd
+driver    : simx
+threads   : 4
+warps     : 2
+cores     : 2
+clusters  : 1
+l2cache   : True
+workload_size : 128
+local_worksize : 8

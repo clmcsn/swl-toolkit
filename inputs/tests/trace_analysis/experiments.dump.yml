@@ -1,0 +1,9 @@
+app: test
+clusters: 1
+cores: 2
+driver: simx
+l2cache: true
+local_worksize: 8
+threads: 4
+warps: 2
+workload_size: 128
