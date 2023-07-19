@@ -2,7 +2,7 @@ import yaml
 import os
 
 from util.parsers.script import ScriptsParserClass
-from runner.experiments import ExperimentManagerClass, ExperimentStringParserClass
+from src.experiments import ExperimentManagerClass, ExperimentStringParserClass
 from util.os_utils import cmd, current_utctime_string
 
 

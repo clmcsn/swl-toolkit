@@ -4,7 +4,7 @@ import glob
 import yaml
 
 import inputs.vortex_da_utils as vda
-import runner.stream_parsing as sp
+import src.stream_parsing as sp
 
 import da.util as util
 from util.os_utils import cmd

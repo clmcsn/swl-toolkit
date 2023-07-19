@@ -6,7 +6,7 @@ from multiprocessing import Manager
 
 import util.parsers.launcher as parsers
 from util.os_utils import cd, cmd, current_utctime_string
-import runner.stream_parsing as stream_parsing
+import src.stream_parsing as stream_parsing
 
 import resource
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))

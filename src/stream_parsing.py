@@ -4,12 +4,17 @@ import shlex
 import traceback
 
 import pandas as pd
-from runner.experiments import ExperimentClass
+from src.experiments import ExperimentClass
+
 #TODO tests:
 # normal working ls
 # faulty command (?) (ls -l /dev/null)
 # implement timers
 # implement trace analysis child class
+
+#TODO refactor:
+# make the class more general based on experience
+# separate classes in subdirectories
 
 class StreamParsingClass(object):
     """
@@ -33,7 +38,6 @@ class StreamParsingClass(object):
         set_timer                           - sets the timer for the command
         
         is_exeption(line)                   - returns True if the line is an exception, False otherwise                             (to be overridden)
-
     """
     def __init__(self, output_path : str, timeout : int = 0):
         # mandatory constructor arguments
