@@ -1,2 +1,2 @@
-# lab_manager
+# swl-toolkit
 python code to manage lab experiments
