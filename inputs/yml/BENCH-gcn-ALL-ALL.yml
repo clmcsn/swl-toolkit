@@ -10,12 +10,11 @@ InnerParams :
   benchmark : 
     - AGGR
     - LINEAR
-    - LAYER
   dataset   :
     - citeseer
     - cora
     - pubmed
   layer     :
     - INTER
-  hidden_size : "8:5"
+  hidden_size : "8:4"
   batch_size  : -1
