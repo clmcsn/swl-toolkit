@@ -167,7 +167,7 @@ class ExperimentManagerClass():
         self.inner_loop_dict = OrderedDict({})
         self.inner_iter = 0
         self.fixed_dict = {}
-        self.experiment_df = None
+        self.experiment_df = pd.DataFrame({})
         self.verbose = True
 
         #-----------------------------INIT--------------------------------
