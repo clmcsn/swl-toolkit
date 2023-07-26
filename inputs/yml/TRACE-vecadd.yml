@@ -3,8 +3,8 @@ app       : vecadd
 driver    : simx
 threads   : 4
 warps     : 2
-cores     : 2
+cores     : 1
 clusters  : 1
 l2cache   : True
 workload_size : 128
-local_worksize : 8
+local_worksize : 16

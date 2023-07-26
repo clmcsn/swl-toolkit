@@ -9,7 +9,7 @@ import src.stream_parsing as sp
 import da.util as util
 from util.os_utils import cmd
 
-from plots.trace import gen_time_traces
+from plots.trace import gen_time_traces, gen_trace_analysis
 from plots.bar import gen_bar
 
 #TODO: 
@@ -224,6 +224,15 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         return r
     
     @staticmethod
+    def plot_traces_v2(sdf,df, path, ID):
+        _ = cmd("mkdir -p {}".format(path + "plots/"))
+        for c in list(df["core"].unique()):
+            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            child_sdf = sdf.loc[(sdf["core"]==c) & (sdf["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            if child_df.empty: continue
+            gen_trace_analysis(    df=child_sdf ,sdf=child_df, traces_col_name="code_section", 
+                                period_col_name="total-exec-time", start_col_name="schedule-stmp", 
+                                path=path + "plots/{}_c{}.svg".format(ID,c))
 
     @staticmethod
     def plot_traces(df, path, ID):
@@ -308,7 +317,31 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         if plot:
             plot_path = "/".join(path.split("/")[:-2]) + "/"
             VortexTraceAnalysisClass.plot_traces(synthesis_df, plot_path, df_ID)
-        
+
+    @staticmethod
+    def make_synthesis_v2(df, df_ID, path="", plot=False):
+        print("Total number of events {}: {}".format(df_ID,len(df)))
+        synthesis_df = pd.DataFrame({})
+        for c in list(df["core"].unique()):
+            for s in list(df["code_section"].unique()):
+                child_df = df.loc[(df["core"]==c) & (df["code_section"]==s)]
+                if child_df.empty: continue
+                events = util.TimeSeriesClass(  ID="{}_{}".format(c,s),
+                                                events=child_df,
+                                                period_col_name="total-exec-time",
+                                                start_col_name="schedule-stmp").make_synthesis()
+                events_len = len(events)
+                events["core"] = [c]*events_len
+                events["code_section"] = [s]*events_len
+                synthesis_df = pd.concat([synthesis_df, events], ignore_index=True)
+
+        if path:
+            synthesis_df.to_feather(path+".syn")
+            yaml.dump(VortexTraceAnalysisClass.extract_info_dict(synthesis_df), open(path+".yml", "w"))
+        if plot:
+            plot_path = "/".join(path.split("/")[:-2]) + "/"
+            VortexTraceAnalysisClass.plot_traces_v2(synthesis_df, df, plot_path, df_ID)
+
     @staticmethod
     def make_roofline(df, sections_to_drop:list, df_ID, path="", plot=False):
         roofline_df = pd.DataFrame({})
@@ -336,7 +369,30 @@ class VortexTraceAnalysisClass(DataExtractionClass):
             roofline_df.to_feather(path+".roof")
         if plot:
             VortexTraceAnalysisClass.make_synthesis(roofline_df, df_ID, path+".roof", True)
-                
+
+    @staticmethod
+    def plot_int(df, path, plot_col, start_col_name="schedule-stmp"):
+        #_ = cmd("mkdir -p {}".format(path + "plots/"))
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        for c in list(df["core"].unique()):
+            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            if child_df.empty: continue
+            child_df = child_df.sort_values(by="eID")
+            start = child_df[start_col_name].min()
+            if start > 0:
+                child_df = child_df.apply(lambda x: x-start if (x.name == start_col_name) else x)
+            fig, (ax,ax1) = plt.subplots(2, figsize=(16,6))#, gridspec_kw={'height_ratios':[6, 1]})
+            sns.lineplot(data=child_df, x=start_col_name, y=plot_col, ax=ax)
+            # clean second axis
+            ax1.spines['right'].set_visible(False)
+            ax1.spines['left'].set_visible(False)
+            ax1.spines['top'].set_visible(False)
+            ax1.spines['bottom'].set_visible(False)
+            ax1.set_xticks([])
+            ax1.set_yticks([])
+            plt.savefig(path, dpi =300, bbox_inches = "tight")
+
     def trace_postprocessing(self, fpath):
         #Add code section
         def get_code_section(x):
@@ -346,7 +402,11 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 return "fini"
         self.iter_df["code_section"]    = self.iter_df.apply(get_code_section, axis=1)
         self.iter_df["e_count"]         = self.iter_df.apply(self.get_exec_count, axis=1)
-        self.make_synthesis(self.iter_df, df_ID=self.iter_fname.split("/")[-1]+".AS_IS", path=self.iter_fname, plot=False)
+
+        self.plot_int(self.iter_df, "/".join(fpath.split("/")[:-2]) + "/plots/{}_PC.svg".format(fpath.split("/")[-1].split(".")[0]), plot_col="PC")
+        self.plot_int(self.iter_df, "/".join(fpath.split("/")[:-2]) + "/plots/{}_TM.svg".format(fpath.split("/")[-1].split(".")[0]), plot_col="e_count")
+        self.make_synthesis(self.iter_df, df_ID=self.iter_fname.split("/")[-1]+".AS_IS", path=self.iter_fname, plot=True)
+        self.make_synthesis_v2(self.iter_df, df_ID=self.iter_fname.split("/")[-1]+".AS_IS_V2", path=self.iter_fname, plot=True)
         self.make_roofline(self.iter_df, sections_to_drop=["kernel_loops_bookkeeping","kernel_memory_addressing"], df_ID=self.iter_fname.split("/")[-1]+".ROOF", path=self.iter_fname, plot=True)
         #plot bar charts
         #plot gains in removing kernel_loops_bookkeeping and kernel_memory_addressing

@@ -12,26 +12,24 @@ fini:
   - 0x8000039c
 workload_distr:
   - "80000708:800008c8" # vx_spawn_kernel
-  - "80000260:8000026c"
 kernel_call_init:
   - "800006dc:80000704" # spawn_kernel_all_cb
   - "800004ec:80000624" # spawn_kernel_all_stub
   - "80000628:800006d8" # spawn_kernel_rem_stub
 kernel_call_init_inner:
   - "80000194:800001dc" # _pocl_kernel_vecadd_workgroup
-kernel_loops_bookkeeping:
-  - "800001e0:800001fc"
-  - "80000210:8000021c"
-  - "8000022c:80000244"
-  - "80000248:8000025c"
-kernel_memory_addressing:
+kernel:
   - 0x80000200
   - 0x80000204
   - 0x8000020c
   - 0x80000220
   - 0x80000224
   - 0x80000228
-kernel:
+  - "800001e0:800001fc"
+  - "80000210:8000021c"
+  - "8000022c:80000244"
+  - "80000248:8000025c"
+  - "80000260:8000026c"
   - 0x80000208
 memory_routines:
   - "80000b28:80000d1c"

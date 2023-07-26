@@ -350,6 +350,8 @@ class ExperimentManagerClass():
     '''
     def sample(self, ID: Union[list, int]):
         if self.hierarchy == "Outer":
+            if not os.path.isfile(self.output_path + "checkpoint_{}.feather".format(ID)):
+                self.experiment_df.to_feather(self.output_path + "checkpoint_{}.feather".format(ID)) #save the checkpoint of the child, if there are some experiments done, we won't loose them
             e = None
         elif self.hierarchy == "Inner" or self.hierarchy == "Flat":
             if type(ID) == list: ID = self.get_gloabal_ID(ID) # if ID is a list of oID and iID, convert it to a global ID
