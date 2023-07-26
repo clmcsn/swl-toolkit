@@ -229,6 +229,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         for c in list(df["core"].unique()):
             child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
             child_sdf = sdf.loc[(sdf["core"]==c) & (sdf["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            print(len(child_df))
             if child_df.empty: continue
             gen_trace_analysis(    df=child_sdf ,sdf=child_df, traces_col_name="code_section", 
                                 period_col_name="total-exec-time", start_col_name="schedule-stmp", 

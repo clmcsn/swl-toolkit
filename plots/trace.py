@@ -112,19 +112,36 @@ def gen_trace_analysis(sdf, df, traces_col_name, period_col_name, start_col_name
 
 
     # ticks
-    xticks = np.arange(0, df.end.max()+1, math.floor(df.end.max()/40))
+    #X-axis
+    possible_ticks = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+    step = math.floor(df.end.max()/40)
+    d = [abs(x - step) for x in possible_ticks]
+    idx = d.index(min(d))
+    step = possible_ticks[idx]
+
+    xticks = np.arange(0, df.end.max()+1, step).astype(int)
     xticks_labels = xticks #* sampling_step
     xticks_minor = np.arange(0, df.end.max()+1, 1)
     ax1.set_xticks(xticks)
-    ax1.set_xticks(xticks_minor, minor=True)
+    #ax1.set_xticks(xticks_minor, minor=True) #minor ticks not visible for now
     ax1.set_xticklabels(xticks_labels, rotation=30)
+
+    #Y-axis
+    #traces
     ax.set_yticks([])
 
+    #PC
+    yticks = np.arange(sdf.PC.min(), sdf.PC.max(), math.floor((sdf.PC.max()-sdf.PC.min())/5)).astype(int)
+    yticks_labels = [hex(x) for x in yticks]
+    #print(yticks_labels)
+    ax1.set_yticks(yticks)
+    ax1.set_yticklabels(yticks_labels)
+
     # remove spines
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['left'].set_position(('outward', 10))
-    ax.spines['top'].set_visible(False)
+    #ax.spines['right'].set_visible(False)
+    #ax.spines['left'].set_visible(False)
+    #ax.spines['left'].set_position(('outward', 10))
+    #ax.spines['top'].set_visible(False)
 
     legend_elements = [Patch(facecolor=colors[i], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
     ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.1, 1.0))
@@ -132,6 +149,12 @@ def gen_trace_analysis(sdf, df, traces_col_name, period_col_name, start_col_name
     ax2 = ax1.twinx()
     sns.lineplot(data=sdf, x=start_col_name, y="e_count", ax=ax2)
     
+    #TMASK
+    yticks = np.arange(sdf.e_count.min(), sdf.e_count.max()+1, 1).astype(int)
+    #yticks_labels = [hex(x) for x in yticks]
+    ax2.set_yticks(yticks)
+    ax2.set_yticklabels(yticks)
+
     # clean second axis
     #ax1.spines['right'].set_visible(False)
     #ax1.spines['left'].set_visible(False)
