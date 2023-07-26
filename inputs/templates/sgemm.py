@@ -3,8 +3,8 @@ from inputs.templates.vortex import VortexCmdTemplate, VortexDefaults, VortexRes
 sgemmCmd = dict(VortexCmdTemplate)
 sgemmCmd.update( {
     "workload_size_x"     : '--args="-x {workload_size_x} ',
-    "workload_size_y"     : '--args="-y {workload_size_y} ',
-    "workload_size_z"     : '--args="-z {workload_size_z} ',
+    "workload_size_y"     : '-y {workload_size_y} ',
+    "workload_size_z"     : '-z {workload_size_z} ',
     "local_worksize"    : '-b {local_worksize}"'
 })
 

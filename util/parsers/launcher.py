@@ -17,6 +17,7 @@ class LauncherParserClass(ScriptsParserClass):
 
     def init_parser(self):
         self.parser.add_argument("-f", "--conf_file", action="store", type=str, help="Configuration file to run a set of experiment.")
+        self.parser.add_argument("-C", "--constr_file", action="store", type=str, help="Constraint file to run a set of experiment.")
         self.parser.add_argument("-l", "--launcher_script", action="store", type=str, help="Script that executes the single experiment iteration.")
         self.parser.add_argument("-p", "--launcher_path", action="store", type=str, help="Path to the launcher script.")
         self.parser.add_argument("-a", "--app", action="store", type=str, help="C application to run the experiment on.")
@@ -100,9 +101,14 @@ class VortexLauncherParserClass(LauncherParserClass):
         self.parser.set_defaults(launcher_path="../")
         self.parser.set_defaults(output_dir=os.getcwd() + "/outputs/launcher_" + current_utctime_string() + "/")
         self.parser.set_defaults(lock_on_first=False)
+        self.parser.set_defaults(constr_file=self.constraints)
     
     def reduce_args(self):
+        """--constraints"""
+        if self.args.constr_file != self.constraints:
+            self.constraints.append(self.args.constr_file)    
         LauncherParserClass.reduce_args(self)
+        
         """--threads"""
         if self.args.threads:
             threads = [self.args.threads] if type(self.args.threads)==int else ExperimentStringParserClass(self.args.threads).parsed_list
@@ -129,6 +135,7 @@ class VortexLauncherParserClass(LauncherParserClass):
         if self.args.workload_size:
             wls = ExperimentStringParserClass(self.args.workload_size)
             self.exp_book.key_update(key="workload_size", value=wls)
+        
         self.exp_book.reduce()
     
 parsersDict = {
