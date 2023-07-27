@@ -5,7 +5,7 @@ sgemmCmd.update( {
     "workload_size_x"     : '--args="-x {workload_size_x} ',
     "workload_size_y"     : '-y {workload_size_y} ',
     "workload_size_z"     : '-z {workload_size_z} ',
-    "local_worksize"    : '-b {local_worksize}"'
+    "local_worksize"    : '-l {local_worksize}"'
 })
 
 sgemmDefaults = dict(VortexDefaults)
