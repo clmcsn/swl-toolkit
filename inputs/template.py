@@ -21,9 +21,15 @@ from inputs.templates.gcn_synth_bench import gcn_synth_benchCmd, gcn_synth_bench
 # ----------------------------------------------------------------------------
 # sgemm ---------------------------------------------------------------------
 from inputs.templates.sgemm import sgemmCmd, sgemmDefaults, sgemmResFname
+# ----------------------------------------------------------------------------
+# sfilter ---------------------------------------------------------------------
+from inputs.templates.sfilter import sfilterCmd, sfilterDefaults, sfilterResFname
+# ----------------------------------------------------------------------------
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
     "vecadd" : Map(CMD=[CondorVortexCmdTemplate, vecaddCmd], DICT=vecaddDefaults, STR=vecaddResFname),
     "gcnSynth" : Map(CMD=[CondorVortexCmdTemplate, gcn_synth_benchCmd], DICT=gcn_synth_benchDefaults, STR=gcn_synth_benchResFname),
-    "sgemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname)}
+    "sgemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
+    "igemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
+    "sfilter" : Map(CMD=[CondorVortexCmdTemplate, sfilterCmd], DICT=sfilterDefaults, STR=sfilterResFname)}
