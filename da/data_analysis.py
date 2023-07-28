@@ -108,10 +108,10 @@ class DataExtractionClass():
             if self.df.empty: self.df = new_df
             else: self.df = pd.concat([self.df, new_df], ignore_index=True)
 
-            #if os.path.isfile(self.checkpoint_path):
-            #    print("Adding experiment metadata to dataframe...")
-            #    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
-            #else: raise Exception("Checkpoint file not found.")
+            if os.path.isfile(self.checkpoint_path):
+                print("Adding experiment metadata to dataframe...")
+                self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+            else: raise Exception("Checkpoint file not found.")
 
             if export: self.dump_dataframe(**kwargs)
         

@@ -29,6 +29,7 @@ from inputs.templates.sfilter import sfilterCmd, sfilterDefaults, sfilterResFnam
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
     "vecadd" : Map(CMD=[CondorVortexCmdTemplate, vecaddCmd], DICT=vecaddDefaults, STR=vecaddResFname),
+    "saxpy" : Map(CMD=[CondorVortexCmdTemplate, vecaddCmd], DICT=vecaddDefaults, STR=vecaddResFname),
     "gcnSynth" : Map(CMD=[CondorVortexCmdTemplate, gcn_synth_benchCmd], DICT=gcn_synth_benchDefaults, STR=gcn_synth_benchResFname),
     "sgemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
     "igemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
