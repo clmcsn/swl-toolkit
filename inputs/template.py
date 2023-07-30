@@ -25,6 +25,9 @@ from inputs.templates.sgemm import sgemmCmd, sgemmDefaults, sgemmResFname
 # sfilter ---------------------------------------------------------------------
 from inputs.templates.sfilter import sfilterCmd, sfilterDefaults, sfilterResFname
 # ----------------------------------------------------------------------------
+# nearn ---------------------------------------------------------------------
+from inputs.templates.nearn import nearnCmd, nearnDefaults, nearnResFname
+# ----------------------------------------------------------------------------
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
@@ -33,4 +36,5 @@ templateDict = {
     "gcnSynth" : Map(CMD=[CondorVortexCmdTemplate, gcn_synth_benchCmd], DICT=gcn_synth_benchDefaults, STR=gcn_synth_benchResFname),
     "sgemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
     "igemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
-    "sfilter" : Map(CMD=[CondorVortexCmdTemplate, sfilterCmd], DICT=sfilterDefaults, STR=sfilterResFname)}
+    "sfilter" : Map(CMD=[CondorVortexCmdTemplate, sfilterCmd], DICT=sfilterDefaults, STR=sfilterResFname),
+    "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname)}
