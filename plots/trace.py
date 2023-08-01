@@ -83,6 +83,9 @@ def gen_trace_analysis(sdf, df, traces_col_name, period_col_name, start_col_name
     if start > 0:
         sdf = sdf.apply(lambda x: x-start if (x.name == start_col_name) else x)
 
+    print("Latest schedule:{}".format(df["schedule-stmp"].max()))
+    print("Latest schedule:{}".format(sdf["schedule-stmp"].max()))
+
     #scaling
     #sampling_step = math.floor(df[period_col_name].min()/2)
     #df = df.apply(lambda x: x/sampling_step if (x.name == start_col_name) or (x.name == period_col_name) else x)
