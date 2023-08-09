@@ -1,6 +1,5 @@
 import os
 import util.os_utils as osu
-import util.parsers.extractor as parsers
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -14,6 +13,19 @@ def make_perc(x, col):
     #p = p if p > -300 else -300
     return p
 
+l = [
+    "IISWC-COMP-vecadd",
+    "IISWC-COMP-relu",
+    "IISWC-COMP-sgemm",
+    "IISWC-COMP-sfilter",
+    "IISWC-COMP-saxpy",
+    "IISWC-COMP-nearn",
+    "IISWC-COMP-aggr",
+    "IISWC-COMP-resnet",
+    "IISWC-COMP-gcn"
+]
+l = [os.path.join("outputs", d) for d in l]
+
 #parser = parsers.ExtractorParserClass()
 #with osu.cd(parser.args.output_dir):
 res_path = "outputs/"
@@ -23,6 +35,7 @@ dirs = [os.path.join(res_path, d) for d in dirs]
 dirs = [d for d in dirs if d.split("/")[-1].startswith("IISWC")]
 plot_df = pd.DataFrame({})
 for d in dirs:
+    if not d in l: continue
     with osu.cd(d):
         if not os.path.isfile("dataframe.feather"): continue
         print(d)
@@ -37,13 +50,18 @@ for d in dirs:
         pivot['perc_0vs32'] = pivot.apply(lambda x: make_perc(x, "32"), axis=1)
         pivot = pd.melt(pivot, value_vars=["perc_0vs1", "perc_0vs32"], id_vars=["1", "32"], var_name="local_worksize", value_name="cycles")
         name = d.split("-")[-1]
+        print("Benchmark:{}".format(name))
+        print("1 - Worst case: {} - Cases below 5%: {}".format(pivot.loc[pivot["local_worksize"]=="perc_0vs1", "cycles"].min(), len(pivot.loc[(pivot["local_worksize"]=="perc_0vs1") & (pivot["cycles"]<-5)])))
+        print("1 - Mean: {}".format(pivot.loc[pivot["local_worksize"]=="perc_0vs1", "cycles"].mean()))
+        print("32 - Worst case: {} - Cases below 5%: {}".format(pivot.loc[pivot["local_worksize"]=="perc_0vs32", "cycles"].min(), len(pivot.loc[(pivot["local_worksize"]=="perc_0vs32") & (pivot["cycles"]<-5)])))
+        print("32 - Mean: {}".format(pivot.loc[pivot["local_worksize"]=="perc_0vs32", "cycles"].mean()))
         pivot["workload"] = [ name for _ in range(len(pivot))]
         plot_df = pd.concat([plot_df, pivot])
 #sorting
-plot_df["workload"] = pd.Categorical(plot_df["workload"], ["vecadd", "sgemm", "sfilter", "saxpy", "nearn", "aggr", "dnn", "gcn"])
+plot_df["workload"] = pd.Categorical(plot_df["workload"], ["vecadd", "relu", "sgemm", "sfilter", "saxpy", "nearn", "aggr", "resnet", "gcn"])
 plot_df = plot_df.sort_values(by="workload")
 plt.figure(figsize=(20,5))
-sns.violinplot(data=plot_df, x="workload", y="cycles", hue="local_worksize", split=True, inner="stick", linewidth=0.7)
+sns.violinplot(data=plot_df, x="workload", y="cycles", hue="local_worksize", split=True)#, inner="stick")#, linewidth=0.7)
 plt.savefig("plots/violin.svg", dpi=300, bbox_inches="tight")
     #for C in df["clusters"].unique().tolist():
     #    for c in df["cores"].unique().tolist():
