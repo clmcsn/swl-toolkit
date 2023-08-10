@@ -1,20 +1,16 @@
 import pandas as pd
 import os
-import glob
 import yaml
 
-import inputs.vortex_da_utils as vda
-import src.stream_parsing as sp
+from . import vortex_da_utils as vda
+import stream_parsing as sp
 
+import util.os_utils as osu
 import da.util as util
-from util.os_utils import cmd
 
-from plots.trace import gen_time_traces, gen_trace_analysis
-from plots.bar import gen_bar
 
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
-#   - Add a way to report the type of fault
 
 class DataExtractionClass():
     """
@@ -31,41 +27,107 @@ class DataExtractionClass():
         df (pandas.DataFrame): dataframe to store extracted data.
         fault_str ([str,list]): string to indicate that the experiment is faulty. Default: "Error".
     """
-    def __init__(self, path, app):
+    def __init__(self, path, app, raw_subdir="raw/", inplace_only=False):
+        #paths
         self.path = path if path[-1]=="/" else path + "/"
+        self.raw_subdir = self.path + raw_subdir
         self.checkpoint_path = self.path + "checkpoint.feather"
+        self.output_dataframe_path = self.path + "dataframe.feather"
+
+        #base attributes
         self.app = app
+        self.inplace_only = inplace_only
+        
+        #members to be overloaded
         self.extracton_func = self.dummy_extraction
+        self.inplace_process = self.dummy_inplace_process
         self.fault_checkers = []
-        self.fault_handlers = self.dummy_fault_handler
-        self.fault_str = [""] # needs to be a list of strings
-        self.mode = "REDUCTION"
+        self.fault_handler = self.dummy_fault_handler
         self.post_extraction_func = self.dummy_post_extraction
-        # Check if dataframe already exists, if so, loads it
-        #TODO this is useless rn! Either make it useful or remove it
-        if os.path.isfile(self.path + "dataframe.feather"):
-            #print("Dataframe found. Loading dataframe...")
-            #self.df = pd.read_feather(self.path + "dataframe.feather")
-            self.df = pd.DataFrame({})
-        else: self.df = pd.DataFrame({})
+
+        #data structures
+        self.df = pd.DataFrame({})
 
     @staticmethod
     def dummy_fault_handler(fpath):
         print("Faulty experiment: {}".format(fpath))
 
     @staticmethod
-    def inplace_extract(fpath):
+    def dummy_inplace_process(fpath):
         pass
 
     @staticmethod
     def dummy_extraction(fpath):
-        return {}
+        return pd.DataFrame({})
     
     @staticmethod
     def dummy_post_extraction():
         pass
+    
+    def is_exp_faulty(self,fpath):
+        for func in self.fault_checkers:
+            ret = func(fpath)
+            if ret: return ret
+        return 0
 
-    def check_faults_by_string(self,fpath):
+    def extract(self):
+        """
+        Extract data from text experiment report.
+        Args:
+            subdir (str): subdirectory where the experiment reports are stored. main directory is self.path. Default: "raw/".
+            export (bool): if True, it exports the experiment to a CSV file. Default: True.
+            **kwargs: keyword arguments to pass to gen_csv method. See gen_csv method for more details.
+        """
+        #iterate over all files in the directory
+        for f in (os.path.join(self.raw_subdir, x) for x in os.listdir(self.raw_subdir)):
+            r = self.is_exp_faulty(f)
+            if r: 
+                self.fault_handler(f)
+                continue
+            self.inplace_process(f)
+            if not self.inplace_only:
+                self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
+
+                if os.path.isfile(self.checkpoint_path):
+                    print("Adding experiment metadata to dataframe...")
+                    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+                else: raise Exception("Checkpoint file not found.")
+                self.dump_dataframe()
+            self.post_extraction_func()
+    
+    def dump_dataframe(self):
+        if os.path.isfile(self.output_dataframe_path):
+            print("Dataframe already present...")
+            osu.make_backup(self.output_dataframe_path)
+        self.df.to_feather(self.output_dataframe_path)
+
+class VortexPerfExtractionClass(DataExtractionClass):
+    def __init__(self,path,app):
+        super(VortexPerfExtractionClass, self).__init__(    path=path,
+                                                            app=app)
+        self.extracton_func = vda.gen_dict_from_log
+        self.fault_checkers = [self.check_faults_by_string]
+        self.fault_handlers = vda.vortex_fault_handler
+        self.post_extraction_func = self.add_extraction_feedback_to_checkpoint
+
+    def add_extraction_feedback_to_checkpoint(self):
+        """
+        Add extraction metadata to the checkpoint file.
+        """
+        experiments_df = pd.read_feather(self.checkpoint_path)
+        bad_df = self.df[self.df.isnull().any(axis=1)]
+        if bad_df.empty:  print("No faulty experiments found!"); return
+        
+        #Handle faulty experiments
+        print("Bad experiments: {}".format(len(bad_df.index)))
+        bad_IDs = bad_df["ID"].values
+        experiments_df.loc[experiments_df["ID"].isin(bad_IDs),"Status"] = 0
+        experiments_df.loc[experiments_df["ID"].isin(bad_IDs),"Return"] = None
+        osu.make_backup(self.checkpoint_path)
+        experiments_df.to_feather(self.checkpoint_path)
+
+    @staticmethod
+    def check_faults_by_string(fpath, fault_str=["INVALID EXPERIMENT"]):
         """
         Check if the experiment report is faulty.
         Args:
@@ -75,78 +137,9 @@ class DataExtractionClass():
         """
         with open(fpath, "r") as f:
             for line in f:
-                if any([x in line for x in self.fault_str]) : return True
-        return False
-    
-    def is_exp_faulty(self,fpath):
-        for func in self.fault_checkers:
-            if func(fpath): return True
-        return False
+                if any([x in line for x in fault_str]) : return 1
+        return 0
 
-    def extract(self, subdir="raw/", export=True, **kwargs):
-        """
-        Extract data from text experiment report.
-        Args:
-            subdir (str): subdirectory where the experiment reports are stored. main directory is self.path. Default: "raw/".
-            export (bool): if True, it exports the experiment to a CSV file. Default: True.
-            **kwargs: keyword arguments to pass to gen_csv method. See gen_csv method for more details.
-        """
-        fpath = self.path + subdir
-        l = []
-        #iterate over all files in the directory
-        for f in (os.path.join(fpath, x) for x in os.listdir(fpath)):
-            #print("Extracting data from {}...".format(f))
-            if self.is_exp_faulty(f): 
-                self.fault_handlers(f)
-                continue
-            if self.mode=="SINGLE":      self.inplace_extract(f)
-            elif self.mode=="REDUCTION": l.append(self.extracton_func(f))
-            else: raise Exception("Invalid mode.")
-        
-        if self.mode=="REDUCTION":
-            new_df = pd.DataFrame(data=l)
-            if self.df.empty: self.df = new_df
-            else: self.df = pd.concat([self.df, new_df], ignore_index=True)
-
-            if os.path.isfile(self.checkpoint_path):
-                print("Adding experiment metadata to dataframe...")
-                self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
-            else: raise Exception("Checkpoint file not found.")
-
-            if export: self.dump_dataframe(**kwargs)
-        
-            self.post_extraction_func()
-
-    def add_extraction_metadata_to_checkpoint(self):
-        #TODO: what if it loads??? This might brake the checkpoint file
-        """
-        Add extraction metadata to the checkpoint file.
-        """
-        exp_df = pd.read_feather(self.checkpoint_path)
-        bad_df = self.df[self.df.isnull().any(axis=1)]
-        if bad_df.empty: print("No faulty experiments found!")
-        else:
-            #TODO add a way to report the type of fault
-            print("Bad experiments: {}".format(len(bad_df)))
-            for i in bad_df["ID"].values.tolist():
-                exp_df.loc[exp_df["ID"] == i,"Status"] = 0
-                exp_df.loc[exp_df["ID"] == i,"Return"] = None
-            print("Exporting corrected checkpoint file...")
-            exp_df.to_feather(self.checkpoint_path)
-    
-    def dump_dataframe(self, name="dataframe.feather"):
-        self.df.to_feather(self.path+name)
-        #print(self.df)
-
-class VortexPerfExtractionClass(DataExtractionClass):
-    def __init__(self,path,app):
-        super(VortexPerfExtractionClass, self).__init__(    path=path,
-                                                            app=app)
-        self.extracton_func = vda.gen_dict_from_log
-        self.fault_str = ["INVALID EXPERIMENT"]
-        self.fault_checkers = [self.check_faults_by_string]
-        self.fault_handlers = vda.vortex_fault_handler
-        self.assembly_reference_file = os.getcwd() + "/inputs/kernel_assembly/" + self.app + "/" + self.app + ".dump"
 
 class VortexTraceAnalysisClass(DataExtractionClass):
     def __init__(self,path,app):

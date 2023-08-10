@@ -85,6 +85,17 @@ def current_utctime_string(template=TIME_FORMAT):
     '''
     return datetime.datetime.now(datetime.timezone.utc).strftime(template)
 
+def make_backup(path, tag="bkp", verbose=True):
+    '''
+    Creates a backup of a file or directory.
+        Parameters:
+            path (str): path to the file or directory to be backed up
+            tag (str): tag to be added to the backup file
+    '''
+    if verbose: print("Making backup of {}".format(path))
+    if os.path.isdir(path): cmd('tar -czvf {}_{}_{}.tar.gz {}'.format(path, tag, current_utctime_string, path))
+    else: os.rename(path, "{}_{}_{}.{}".format(path(".")[:-1], tag, current_utctime_string, path(".")[-1]))
+
 class cd:
     """
     Context manager for changing the current working directory

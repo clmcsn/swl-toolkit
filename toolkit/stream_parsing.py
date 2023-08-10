@@ -4,7 +4,7 @@ import shlex
 import traceback
 
 import pandas as pd
-from src.experiments import ExperimentClass
+from scripts.toolkit.experiments import ExperimentClass
 
 #TODO tests:
 # normal working ls

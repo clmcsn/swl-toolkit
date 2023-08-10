@@ -1,4 +1,4 @@
-import src.stream_parsing as stream_parsing
+import scripts.toolkit.stream_parsing as stream_parsing
 import os
 from util.os_utils import cmd
 

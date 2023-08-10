@@ -9,4 +9,3 @@ else:
     extractor = da.extractorsDict[APP](parser.args.output_dir, parser.args.app)
 
 extractor.extract()
-if parser.args.correct: extractor.add_extraction_metadata_to_checkpoint()
