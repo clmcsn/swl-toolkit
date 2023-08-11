@@ -4,7 +4,8 @@ import shlex
 import traceback
 
 import pandas as pd
-from scripts.toolkit.experiments import ExperimentClass
+
+from . import experiments as exs
 
 #TODO tests:
 # normal working ls
@@ -213,13 +214,13 @@ class LsStreamParsingClass(StreamParsingClass):
         
 class VortexTraceAnalysisClass(StreamParsingClass):
     def __init__(self, output_file: str, timeout: int = 0,
-                        args: dict = {}, exp : ExperimentClass = ExperimentClass({})):
+                        args: dict = {}, exp : exs.ExperimentClass = exs.ExperimentClass({})):
         self.output_file = output_file + ".feather"
         super().__init__(os.path.dirname(self.output_file), timeout)
         if args:
             args['debug'] = True # add debug flag!
             self.cmd_arg_dict.update(args)
-            self.experiment = ExperimentClass(struct= self.cmd_arg_dict, res_path=self.output_path)
+            self.experiment = exs.ExperimentClass(struct= self.cmd_arg_dict, res_path=self.output_path)
         # reduce args here
         elif exp is not None:
             self.experiment = exp

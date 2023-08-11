@@ -93,8 +93,8 @@ def make_backup(path, tag="bkp", verbose=True):
             tag (str): tag to be added to the backup file
     '''
     if verbose: print("Making backup of {}".format(path))
-    if os.path.isdir(path): cmd('tar -czvf {}_{}_{}.tar.gz {}'.format(path, tag, current_utctime_string, path))
-    else: os.rename(path, "{}_{}_{}.{}".format(path(".")[:-1], tag, current_utctime_string, path(".")[-1]))
+    if os.path.isdir(path): cmd('tar -czvf {}_{}_{}.tar.gz {}'.format(path, tag, current_utctime_string(), path))
+    else: os.rename(path, "{}_{}_{}.{}".format(".".join(path.split(".")[:-1]), tag, current_utctime_string(), path.split(".")[-1]))
 
 class cd:
     """

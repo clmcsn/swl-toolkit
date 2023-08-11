@@ -3,11 +3,9 @@ import os
 import yaml
 
 from . import vortex_da_utils as vda
-import stream_parsing as sp
-
-import util.os_utils as osu
-import da.util as util
-
+from . import utils
+from .. import stream_parsing as sp
+from ..util import os_utils as osu
 
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
@@ -85,9 +83,9 @@ class DataExtractionClass():
                 self.fault_handler(f)
                 continue
             self.inplace_process(f)
-            if not self.inplace_only:
+            if (not self.inplace_only):
                 self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
-
+                print(len(self.df.index))
                 if os.path.isfile(self.checkpoint_path):
                     print("Adding experiment metadata to dataframe...")
                     self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
@@ -295,7 +293,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 for s in list(df["code_section"].unique()):
                     child_df = df.loc[(df["core"]==c) & (df["warp"]==w) & (df["code_section"]==s)]
                     if child_df.empty: continue
-                    events = util.TimeSeriesClass(  ID="{}_{}_{}".format(c,w,s), 
+                    events = utils.TimeSeriesClass(  ID="{}_{}_{}".format(c,w,s), 
                                                     events=child_df, 
                                                     period_col_name="total-exec-time", 
                                                     start_col_name="schedule-stmp").make_synthesis()
@@ -320,7 +318,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
             for s in list(df["code_section"].unique()):
                 child_df = df.loc[(df["core"]==c) & (df["code_section"]==s)]
                 if child_df.empty: continue
-                events = util.TimeSeriesClass(  ID="{}_{}".format(c,s),
+                events = utils.TimeSeriesClass(  ID="{}_{}".format(c,s),
                                                 events=child_df,
                                                 period_col_name="total-exec-time",
                                                 start_col_name="schedule-stmp").make_synthesis()
