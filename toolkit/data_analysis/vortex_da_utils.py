@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 fname_info = {
     'clusters'          : 'C',
@@ -134,6 +135,9 @@ def gen_dict_from_log(path):
     dl = gen_dict_from_logfile(path)
     dl["ID"] = int(fname.split("_")[fname_info["ID"]])
     return dl
+
+def gen_df_from_log(path):
+    return pd.DataFrame(gen_dict_from_log(path),index=[0])
 
 def vortex_fault_handler(path):
     with open("fauty.txt","a") as f:

@@ -83,15 +83,14 @@ class DataExtractionClass():
                 self.fault_handler(f)
                 continue
             self.inplace_process(f)
-            if (not self.inplace_only):
-                self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
-                print(len(self.df.index))
-                if os.path.isfile(self.checkpoint_path):
-                    print("Adding experiment metadata to dataframe...")
-                    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
-                else: raise Exception("Checkpoint file not found.")
-                self.dump_dataframe()
-            self.post_extraction_func()
+            if (not self.inplace_only): self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
+        if (not self.inplace_only):
+            if os.path.isfile(self.checkpoint_path):
+                print("Adding experiment metadata to dataframe...")
+                self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+            else: raise Exception("Checkpoint file not found.")
+            self.dump_dataframe()
+        self.post_extraction_func()
     
     def dump_dataframe(self):
         if os.path.isfile(self.output_dataframe_path):
@@ -103,7 +102,7 @@ class VortexPerfExtractionClass(DataExtractionClass):
     def __init__(self,path,app):
         super(VortexPerfExtractionClass, self).__init__(    path=path,
                                                             app=app)
-        self.extracton_func = vda.gen_dict_from_log
+        self.extracton_func = vda.gen_df_from_log
         self.fault_checkers = [self.check_faults_by_string]
         self.fault_handlers = vda.vortex_fault_handler
         self.post_extraction_func = self.add_extraction_feedback_to_checkpoint
