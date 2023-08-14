@@ -1,9 +1,10 @@
-import util.parsers.script as parser
+from .script import ScriptsParserClass
+
 import os
 
 from util.os_utils import mkdir, current_utctime_string
 
-class TracesParserClass(parser.ScriptsParserClass):
+class TracesParserClass(ScriptsParserClass):
     def __init__(self, args=None):
         super(TracesParserClass, self).__init__(args)
     

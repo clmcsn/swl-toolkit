@@ -6,6 +6,7 @@ from . import vortex_da_utils as vda
 from . import utils
 from .. import stream_parsing as sp
 from ..util import os_utils as osu
+from ..plots.trace import gen_trace_analysis, gen_time_traces
 
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
@@ -137,18 +138,23 @@ class VortexPerfExtractionClass(DataExtractionClass):
                 if any([x in line for x in fault_str]) : return 1
         return 0
 
-
 class VortexTraceAnalysisClass(DataExtractionClass):
     def __init__(self,path,app):
+        """
+        Class to extract data from Vortex trace.
+        Args:
+            path (str): path to the directory where the experiment dataframes (obtained with stream_parsing) are stored.
+            app (str): Mandatory. Application name (e.g. vecadd).
+        """
         super(VortexTraceAnalysisClass, self).__init__(    path=path,
-                                                            app=app)
-        self.mode = "SINGLE"
+                                                            app=app,
+                                                            inplace_only=True)
         self.extracton_func = self.dummy_extraction
-        self.inplace_extract = self.trace_postprocessing
-        self.fault_str = ["INVALID EXPERIMENT"]
+        self.inplace_process = self.trace_analysis
         self.fault_checkers = [self.is_not_db, self.check_empty_database, self.check_coherent_assembly]
         self.fault_handlers = self.dummy_fault_handler
 
+        #Following line works only if script is run from the project root directory
         input_path = os.getcwd() + "/inputs/kernel_assembly/" + self.app + "/" 
         self.dotdump_path = input_path + self.app + ".dump"
         self.code_sections = self.gen_code_map(input_path + "sections.yml")
@@ -156,9 +162,17 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         self.iter_fname = ""
 
     @staticmethod
-    def gen_code_map(code_sections_fname):
+    def gen_code_map(code_sections_fname: str) -> dict:
+        """
+        Generate a code map (lookup table) from a yaml file.
+        Args:
+            code_sections_fname (str): path to the yaml file containing the code sections.
+        Returns:
+            dict: code map. Dictionary with keys = code instruction PC names and values = list of code section addresses.
+        """
         code_sections = yaml.load(open(code_sections_fname, "r"), Loader=yaml.FullLoader)
         code_map = {}
+        #Generating a list of PC addresses for each code section
         for s in code_sections.keys():
             code_map[s] = []
             for e in code_sections[s]:
@@ -167,12 +181,14 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 elif type(e) == str: 
                     ee = e.split(":")
                     code_map[s].extend(range(int(ee[0],base=16),int(ee[1],base=16)+1,4))
-        vmax = 0
+        
+        #Generating program boundaries
+        vmin = 0x80000000
+        vmax = vmin
         for s in code_map.keys():
             vmax = max(vmax, max(code_map[s])) #getting the max value of the code map
-        
-        vmin = 0x80000000
 
+        #Generating the reverse code map -> key = PC address, value = code section name
         ret_code_map = {}
         for i in range(vmin,vmax+1):
             for s in code_map.keys():
@@ -181,6 +197,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                     break
         return ret_code_map   
 
+    # ------------------------ FAULT CHECKERS ------------------- #
     @staticmethod
     def is_not_db(fpath):
         if fpath[-8:] == ".feather": return False
@@ -212,29 +229,34 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         if not r: print("Assembly looks OK!")
         else: print("ERROR: Assembly is not coherent!")
         return r
-    
+
+    # ---------------------------------------------------------- #
+    # ------------------------ PLOTS --------------------------- #
+
     @staticmethod
-    def plot_traces_v2(sdf,df, path, ID):
-        _ = cmd("mkdir -p {}".format(path + "plots/"))
+    def plot_complete_trace_plot(sdf,df, path, ID, sections=[]):
+        _ = osu.cmd("mkdir -p {}".format(path + "plots/"))
         for c in list(df["core"].unique()):
-            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
-            child_sdf = sdf.loc[(sdf["core"]==c) & (sdf["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
-            print(len(child_df))
+            if not sections: sections = list(df["code_section"].unique()) 
+            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(sections))]   #["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            child_sdf = sdf.loc[(sdf["core"]==c) & (sdf["code_section"].isin(sections))]   #["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
             if child_df.empty: continue
-            gen_trace_analysis(    df=child_sdf ,sdf=child_df, traces_col_name="code_section", 
+            gen_trace_analysis( df=child_df ,synthetic_df=child_sdf, traces_col_name="code_section", 
                                 period_col_name="total-exec-time", start_col_name="schedule-stmp", 
                                 path=path + "plots/{}_c{}.svg".format(ID,c))
 
     @staticmethod
-    def plot_traces(df, path, ID):
-        _ = cmd("mkdir -p {}".format(path + "plots/"))
+    def plot_time_traces(df, path, ID, sections=[]):
+        _ = osu.cmd("mkdir -p {}".format(path + "plots/"))
         for c in list(df["core"].unique()):
-            for w in list(df["warp"].unique()):
-                child_df = df.loc[(df["core"]==c) & (df["warp"]==w)]
-                if child_df.empty: continue
-                gen_time_traces(    df=child_df, traces_col_name="code_section", 
-                                    period_col_name="total-exec-time", start_col_name="schedule-stmp", 
-                                    path=path + "plots/{}_c{}_w{}.svg".format(ID,c,w))
+            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(sections))]   #["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
+            if child_df.empty: continue
+            gen_time_traces(    df=child_df, traces_col_name="code_section", 
+                                period_col_name="total-exec-time", start_col_name="schedule-stmp", 
+                                path=path + "plots/{}_CORE{}.svg".format(ID,c))
+
+    # ---------------------------------------------------------- #
+    # ---------------------------- UTILS ----------------------- #
 
     @staticmethod
     def get_exec_count(x):
@@ -282,41 +304,19 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         info["total-thread-exec-count"] = int(df["thread_event_count"].sum())
         info["overhead"] = (info["last-commit"] - info["section-exec-time"]["kernel"]*info["section-exec-count"]["kernel"]/info["section-thread-exec-count"]["kernel"]) / info["last-commit"] * 100
         return info
+    
+# ----------------------------------------------------------- #
+# ------------------------ MAIN FUNCTIONS ------------------- #
 
     @staticmethod
-    def make_synthesis(df, df_ID, path="", plot=False):
-        print("Total number of events {}: {}".format(df_ID,len(df)))
-        synthesis_df = pd.DataFrame({})
-        for c in list(df["core"].unique()):
-            for w in list(df["warp"].unique()):
-                for s in list(df["code_section"].unique()):
-                    child_df = df.loc[(df["core"]==c) & (df["warp"]==w) & (df["code_section"]==s)]
-                    if child_df.empty: continue
-                    events = utils.TimeSeriesClass(  ID="{}_{}_{}".format(c,w,s), 
-                                                    events=child_df, 
-                                                    period_col_name="total-exec-time", 
-                                                    start_col_name="schedule-stmp").make_synthesis()
-                    events_len = len(events)
-                    events["core"] = [c]*events_len
-                    events["warp"] = [w]*events_len
-                    events["code_section"] = [s]*events_len
-                    #events["end"] = events["schedule-stmp"] + events["total-exec-time"]
-                    synthesis_df = pd.concat([synthesis_df, events], ignore_index=True)
-        if path:
-            synthesis_df.to_feather(path+".syn")
-            yaml.dump(VortexTraceAnalysisClass.extract_info_dict(synthesis_df), open(path+".yml", "w"))
-        if plot:
-            plot_path = "/".join(path.split("/")[:-2]) + "/"
-            VortexTraceAnalysisClass.plot_traces(synthesis_df, plot_path, df_ID)
-
-    @staticmethod
-    def make_synthesis_v2(df, df_ID, path="", plot=False):
+    def make_synthesis(df, df_ID, path="", plot=True):
         print("Total number of events {}: {}".format(df_ID,len(df)))
         synthesis_df = pd.DataFrame({})
         for c in list(df["core"].unique()):
             for s in list(df["code_section"].unique()):
                 child_df = df.loc[(df["core"]==c) & (df["code_section"]==s)]
                 if child_df.empty: continue
+                #extracting the fused events
                 events = utils.TimeSeriesClass(  ID="{}_{}".format(c,s),
                                                 events=child_df,
                                                 period_col_name="total-exec-time",
@@ -327,11 +327,17 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 synthesis_df = pd.concat([synthesis_df, events], ignore_index=True)
 
         if path:
-            synthesis_df.to_feather(path+".syn")
-            yaml.dump(VortexTraceAnalysisClass.extract_info_dict(synthesis_df), open(path+".yml", "w"))
+            print("Saving synthesis dataframe:{}".format(path))
+            synthesis_df.to_feather(path+df_ID+".feather")
+            yaml.dump(VortexTraceAnalysisClass.extract_info_dict(synthesis_df), open(path+df_ID+".yml", "w"))
         if plot:
-            plot_path = "/".join(path.split("/")[:-2]) + "/"
-            VortexTraceAnalysisClass.plot_traces_v2(synthesis_df, df, plot_path, df_ID)
+            print("Generating synthesis plot:{}".format(path))
+            #sdf,df, path, ID, sections=[]):
+            VortexTraceAnalysisClass.plot_complete_trace_plot(  sdf=synthesis_df, df=df, 
+                                                                path=path, ID= df_ID)
+            VortexTraceAnalysisClass.plot_complete_trace_plot(  sdf=synthesis_df, df=df, 
+                                                                path=path, ID=df_ID+"_ZOOM", 
+                                                                sections=["workload_distr","kernel_call_init","kernel_call_init_inner","kernel","kernel_loops_bookkeeping","kernel_memory_addressing"])
 
     @staticmethod
     def make_roofline(df, sections_to_drop:list, df_ID, path="", plot=False):
@@ -347,7 +353,6 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                     if child_df.loc[i]["code_section"] in sections_to_drop:
                         # need to avoid the last iteration
                         if i!=iterations-1: saved_time += child_df.loc[i+1]["schedule-stmp"] - child_df.loc[i]["schedule-stmp"]
-                        #child_df.loc[i+1, "schedule-stmp"] = child_df.loc[i+1]["schedule-stmp"] - saved_time
                         child_df = child_df.drop(i)
                     else:
                         child_df.loc[i, "schedule-stmp"] = child_df.loc[i]["schedule-stmp"] - saved_time
@@ -357,34 +362,11 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 child_df["warp"] = [w]*elen
                 roofline_df = pd.concat([roofline_df, child_df], ignore_index=True)
         if path:
-            roofline_df.to_feather(path+".roof")
+            roofline_df.to_feather(path+df_ID+".feather")
         if plot:
-            VortexTraceAnalysisClass.make_synthesis(roofline_df, df_ID, path+".roof", True)
+            VortexTraceAnalysisClass.make_synthesis(roofline_df, df_ID, path)
 
-    @staticmethod
-    def plot_int(df, path, plot_col, start_col_name="schedule-stmp"):
-        #_ = cmd("mkdir -p {}".format(path + "plots/"))
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-        for c in list(df["core"].unique()):
-            child_df = df.loc[(df["core"]==c) & (df["code_section"].isin(["workload_distr","kernel_call_init","kernel_call_init_inner","kernel"]))]
-            if child_df.empty: continue
-            child_df = child_df.sort_values(by="eID")
-            start = child_df[start_col_name].min()
-            if start > 0:
-                child_df = child_df.apply(lambda x: x-start if (x.name == start_col_name) else x)
-            fig, (ax,ax1) = plt.subplots(2, figsize=(16,6))#, gridspec_kw={'height_ratios':[6, 1]})
-            sns.lineplot(data=child_df, x=start_col_name, y=plot_col, ax=ax)
-            # clean second axis
-            ax1.spines['right'].set_visible(False)
-            ax1.spines['left'].set_visible(False)
-            ax1.spines['top'].set_visible(False)
-            ax1.spines['bottom'].set_visible(False)
-            ax1.set_xticks([])
-            ax1.set_yticks([])
-            plt.savefig(path, dpi =300, bbox_inches = "tight")
-
-    def trace_postprocessing(self, fpath):
+    def trace_analysis(self, fpath):
         #Add code section
         def get_code_section(x):
             try:
@@ -394,14 +376,12 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         self.iter_df["code_section"]    = self.iter_df.apply(get_code_section, axis=1)
         self.iter_df["e_count"]         = self.iter_df.apply(self.get_exec_count, axis=1)
 
-        self.plot_int(self.iter_df, "/".join(fpath.split("/")[:-2]) + "/plots/{}_PC.svg".format(fpath.split("/")[-1].split(".")[0]), plot_col="PC")
-        self.plot_int(self.iter_df, "/".join(fpath.split("/")[:-2]) + "/plots/{}_TM.svg".format(fpath.split("/")[-1].split(".")[0]), plot_col="e_count")
-        self.make_synthesis(self.iter_df, df_ID=self.iter_fname.split("/")[-1]+".AS_IS", path=self.iter_fname, plot=True)
-        self.make_synthesis_v2(self.iter_df, df_ID=self.iter_fname.split("/")[-1]+".AS_IS_V2", path=self.iter_fname, plot=True)
-        self.make_roofline(self.iter_df, sections_to_drop=["kernel_loops_bookkeeping","kernel_memory_addressing"], df_ID=self.iter_fname.split("/")[-1]+".ROOF", path=self.iter_fname, plot=True)
-        #plot bar charts
-        #plot gains in removing kernel_loops_bookkeeping and kernel_memory_addressing
-        #plot overhead time vs total time when sweeping the workload size: when is the crossing point?
+        stripped_df_name = self.iter_fname.split("/")[-1].split(".")[0]
+        output_path = self.path + stripped_df_name + "/"
+        _ = osu.cmd("mkdir -p {}".format(output_path))
+        self.make_synthesis(self.iter_df, df_ID=stripped_df_name+"-SYN", path=output_path, plot=True)
+        self.make_roofline(self.iter_df, sections_to_drop=["kernel_loops_bookkeeping","kernel_memory_addressing"], 
+                           df_ID=stripped_df_name+"-SSR-FREP", path=output_path, plot=True)
 
 class VortexTracePostProcessingClass(DataExtractionClass):
     def __init__(self,path,app):

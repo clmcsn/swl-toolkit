@@ -1,6 +1,6 @@
 import os
-import da.data_analysis as da
-import util.parsers.extractor as parsers
+from toolkit.data_analysis import data_analysis as da
+from toolkit.util.parsers import extractor as parsers
 
 APP = os.getenv("APP")
 if APP is None: raise Exception("APP environment variable not set. No default parser available.")

@@ -1,7 +1,7 @@
 import os
 import yaml
 
-from util.parsers.script import ScriptsParserClass
+from .script import ScriptsParserClass
 
 class ExtractorParserClass(ScriptsParserClass):
     def __init__(self):

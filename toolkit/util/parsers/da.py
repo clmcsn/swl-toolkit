@@ -1,7 +1,7 @@
 import os
 import yaml
 
-from util.parsers.script import ScriptsParserClass
+from .script import ScriptsParserClass
 from util.os_utils import cmd
 
 class DataAnalysisParserClass(ScriptsParserClass):
