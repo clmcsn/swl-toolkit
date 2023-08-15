@@ -139,7 +139,7 @@ class VortexPerfExtractionClass(DataExtractionClass):
         return 0
 
 class VortexTraceAnalysisClass(DataExtractionClass):
-    def __init__(self,path,app):
+    def __init__(self,path,app,plot=True):
         """
         Class to extract data from Vortex trace.
         Args:
@@ -149,6 +149,9 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         super(VortexTraceAnalysisClass, self).__init__(    path=path,
                                                             app=app,
                                                             inplace_only=True)
+        
+        self.plot = plot
+
         self.extracton_func = self.dummy_extraction
         self.inplace_process = self.trace_analysis
         self.fault_checkers = [self.is_not_db, self.check_empty_database, self.check_coherent_assembly]
@@ -244,6 +247,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
             gen_trace_analysis( df=child_df ,synthetic_df=child_sdf, traces_col_name="code_section", 
                                 period_col_name="total-exec-time", start_col_name="schedule-stmp", 
                                 path=path + "plots/{}_c{}.svg".format(ID,c))
+        
 
     @staticmethod
     def plot_time_traces(df, path, ID, sections=[]):
@@ -363,8 +367,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 roofline_df = pd.concat([roofline_df, child_df], ignore_index=True)
         if path:
             roofline_df.to_feather(path+df_ID+".feather")
-        if plot:
-            VortexTraceAnalysisClass.make_synthesis(roofline_df, df_ID, path)
+            VortexTraceAnalysisClass.make_synthesis(roofline_df, df_ID, path,plot=plot)
 
     def trace_analysis(self, fpath):
         #Add code section
@@ -379,9 +382,10 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         stripped_df_name = self.iter_fname.split("/")[-1].split(".")[0]
         output_path = self.path + stripped_df_name + "/"
         _ = osu.cmd("mkdir -p {}".format(output_path))
-        self.make_synthesis(self.iter_df, df_ID=stripped_df_name+"-SYN", path=output_path, plot=True)
+        self.make_synthesis(self.iter_df, df_ID=stripped_df_name+"-SYN", path=output_path, plot=self.plot)
         self.make_roofline(self.iter_df, sections_to_drop=["kernel_loops_bookkeeping","kernel_memory_addressing"], 
-                           df_ID=stripped_df_name+"-SSR-FREP", path=output_path, plot=True)
+                           df_ID=stripped_df_name+"-SSR-FREP", path=output_path, plot=self.plot)
+        
 
 class VortexTracePostProcessingClass(DataExtractionClass):
     def __init__(self,path,app):

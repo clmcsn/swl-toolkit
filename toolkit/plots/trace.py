@@ -71,6 +71,7 @@ def gen_time_traces(df, traces_col_name, period_col_name, start_col_name, path=N
 
     gen_plot(path)
 
+#TODO clean pandas warnings
 def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start_col_name, 
                        remove_bias=True, path=None, time_span=0, max_threads=0):
     """
@@ -93,6 +94,7 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
             synthetic_df = synthetic_df.apply(lambda x: x-start if (x.name == start_col_name) else x)
 
     df["end"] = df[start_col_name].add(df[period_col_name])
+    #df["end"] = df.apply(lambda x: x[start_col_name]+x[period_col_name])
 
     """Assigning colors to traces sections"""
     for i, t in enumerate(list(df[traces_col_name].unique())): 
@@ -170,3 +172,4 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     ax2.set_ylim([0, y_ax_limit+0.1])
 
     gen_plot(path)
+    plt.close('all')
