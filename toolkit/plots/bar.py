@@ -1,4 +1,5 @@
-from plots.utils import init_plot
+from .utils import init_plot
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd

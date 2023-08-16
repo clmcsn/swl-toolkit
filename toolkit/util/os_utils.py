@@ -96,6 +96,20 @@ def make_backup(path, tag="bkp", verbose=True):
     if os.path.isdir(path): cmd('tar -czvf {}_{}_{}.tar.gz {}'.format(path, tag, current_utctime_string(), path))
     else: os.rename(path, "{}_{}_{}.{}".format(".".join(path.split(".")[:-1]), tag, current_utctime_string(), path.split(".")[-1]))
 
+def get_files(directory, extension):
+    '''
+    Returns a list of files with a given extension in a directory.
+        Parameters:
+            directory (str): directory to search for files
+            extension (str): extension of the files to be searched
+        Returns:
+            files (list): list of files with the given extension in the directory
+    '''
+    files = []
+    for f in os.listdir(directory):
+        if f.endswith(extension): files.append(f)
+    return files
+
 class cd:
     """
     Context manager for changing the current working directory

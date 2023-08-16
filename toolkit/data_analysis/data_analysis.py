@@ -7,6 +7,7 @@ from . import utils
 from .. import stream_parsing as sp
 from ..util import os_utils as osu
 from ..plots.trace import gen_trace_analysis, gen_time_traces
+from ..plots.bar import gen_bar
 
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
@@ -49,7 +50,7 @@ class DataExtractionClass():
 
     @staticmethod
     def dummy_fault_handler(fpath):
-        print("Faulty experiment: {}".format(fpath))
+        pass
 
     @staticmethod
     def dummy_inplace_process(fpath):
@@ -87,8 +88,11 @@ class DataExtractionClass():
             if (not self.inplace_only): self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
         if (not self.inplace_only):
             if os.path.isfile(self.checkpoint_path):
-                print("Adding experiment metadata to dataframe...")
-                self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+                try:
+                    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+                    print("Added experiment metadata to dataframe.")
+                except:
+                    pass
             else: raise Exception("Checkpoint file not found.")
             self.dump_dataframe()
         self.post_extraction_func()
@@ -155,7 +159,6 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         self.extracton_func = self.dummy_extraction
         self.inplace_process = self.trace_analysis
         self.fault_checkers = [self.is_not_db, self.check_empty_database, self.check_coherent_assembly]
-        self.fault_handlers = self.dummy_fault_handler
 
         #Following line works only if script is run from the project root directory
         input_path = os.getcwd() + "/inputs/kernel_assembly/" + self.app + "/" 
@@ -390,60 +393,60 @@ class VortexTraceAnalysisClass(DataExtractionClass):
 class VortexTracePostProcessingClass(DataExtractionClass):
     def __init__(self,path,app):
         super(VortexTracePostProcessingClass, self).__init__(   path=path,
-                                                                app=app)
-        self.mode = "REDUCTION"
+                                                                app=app,
+                                                                raw_subdir="/")
         self.extracton_func = self.trace_postprocessing
         self.post_extraction_func = self.post_extraction
-        self.fault_str = ["INVALID EXPERIMENT"]
-        self.fault_checkers = [self.is_not_yml_file]
-        self.fault_handlers = self.dummy_fault_handler
-        self.iter_dict = {}
-        self.iter_fname = ""
-    
-    def is_not_yml_file(self, fpath):
-        if fpath.endswith(".yml"):
-            self.iter_dict = yaml.load(open(fpath, "r"), Loader=yaml.FullLoader)
-            self.iter_fname = fpath
-            return False
-        return True
+        self.fault_checkers = [self.is_not_exp_dir]
 
     @staticmethod
-    def dummy_fault_handler(fpath):
-        pass
-
+    def is_not_exp_dir(fpath):
+        if not os.path.isdir(fpath): return True
+        if not fpath.split("/")[-1][0].isdigit(): return True
+        return False
+    
     @staticmethod
     def plot_bars(d, path, df_ID):
-        _ = cmd("mkdir -p {}".format(path + "plots/"),verbose=False)
+        plot_path = path + "/plots/"
+        _ = osu.cmd("mkdir -p {}".format(plot_path),verbose=False)
         for k in d["section-exec-time"].keys():
+            #Normalizing the execution time by the avg number of threads executing the section
             d["section-exec-time"][k] = d["section-exec-time"][k]/(d["section-thread-exec-count"][k]/d["section-exec-count"][k])
         df = pd.DataFrame(d["section-exec-time"], index=[0])
         df = df.apply(lambda x: x/d["last-commit"]*100, axis=1)
         df = df.melt(var_name="section", value_name="period")
-        gen_bar(df, "period", "section", path=path + "plots/" + df_ID + ".svg")
+        gen_bar(df, "period", "section", path=plot_path + df_ID + "-section-breakdown.svg")
 
     def trace_postprocessing(self, fpath):
-        ID_string = fpath.split("/")[-1].split(".")[0]
-        if "roof" in fpath: ID_plot = ID_string + ".roof"
-        else: ID_plot = ID_string + ".AS_IS"
-        plot_path = "/".join(fpath.split("/")[:-2]) + "/"
-        VortexTracePostProcessingClass.plot_bars(self.iter_dict, plot_path, ID_plot)
-        d = {"ID": ID_string}
-        d["roof"] = True if "roof" in fpath else False
-        d["overhead"] = self.iter_dict["overhead"]
-        d["last-commit"] = self.iter_dict["last-commit"]
-        d["total-exec-count"] = self.iter_dict["total-exec-count"]
-        d["total-thread-exec-count"] = self.iter_dict["total-thread-exec-count"]
-        return d
+        files = osu.get_files(fpath, extension=".yml")
+        print("Found {} files".format(len(files)))
+        df = pd.DataFrame({})
+        for f in files:
+            print(f)
+            ID_string = f.split(".")[0]
+            tag = "-".join(ID_string.split("-")[1:])
+            with open(fpath+"/"+f, "r") as yf:    d = yaml.load(yf, Loader=yaml.FullLoader)
+            VortexTracePostProcessingClass.plot_bars(d, fpath, ID_string)
+            #need to drop the break-down dictionaries}
+            itd = {"ID": ID_string}
+            itd["tag"] = tag if tag else "BASELINE"
+            itd["overhead"] = d["overhead"]
+            itd["last-commit"] = d["last-commit"]
+            itd["total-exec-count"] = d["total-exec-count"]
+            itd["total-thread-exec-count"] = d["total-thread-exec-count"]
+            df = pd.concat([df, pd.DataFrame(itd,index=[0])], ignore_index=True)
+        return df
 
     def post_extraction(self):
-        plot_path = "/".join(self.iter_fname.split("/")[:-2]) + "/plots/"
+        plot_path = self.path + "/plots/"
+        _ = osu.cmd("mkdir -p {}".format(plot_path))
         #print dual bar
-        gen_bar(self.df.sort_values(by="ID"), height="last-commit", bar_names="ID", hue="roof", path=plot_path + "savings_cycles.svg", log=True)
-        gen_bar(self.df.sort_values(by="ID"), height="total-exec-count", bar_names="ID", hue="roof", path=plot_path + "savings_instr_issue.svg", log=True)
-        gen_bar(self.df.sort_values(by="ID"), height="total-thread-exec-count", bar_names="ID", hue="roof", path=plot_path + "savings_instr_exec.svg", log=True)
+        gen_bar(self.df.sort_values(by="ID"), height="last-commit", bar_names="ID", hue="tag", path=plot_path + "savings_cycles.svg", log=True)
+        gen_bar(self.df.sort_values(by="ID"), height="total-exec-count", bar_names="ID", hue="tag", path=plot_path + "savings_instr_issue.svg", log=True)
+        gen_bar(self.df.sort_values(by="ID"), height="total-thread-exec-count", bar_names="ID", hue="tag", path=plot_path + "savings_instr_exec.svg", log=True)
 
-        for i in list(self.df["roof"].unique()):
-            child_df = self.df.loc[self.df["roof"]==i]
+        for i in list(self.df["tag"].unique()):
+            child_df = self.df.loc[self.df["tag"]==i]
             gen_bar(child_df.sort_values(by="ID"), height="overhead", bar_names="ID", path=plot_path + "overhead{}.svg".format("_root" if i else ""))
         #df = pd.DataFrame({})
         #for i in range(len(df)):
