@@ -1,0 +1,12 @@
+"obj_list" :
+  - "IISWC-COMP-gcn-badd"
+  - "IISWC-COMP-gcn-relu"
+  - "IISWC-COMP-gcn-aggr"
+  - "IISWC-COMP-gcn-linear"
+"merge_on" :
+  - "clusters" 
+  - "cores"
+  - "warps"
+  - "threads"
+  - "local_worksize"
+"output_dir" : "/IISWC-COMP-gcn/"

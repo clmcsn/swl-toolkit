@@ -6,6 +6,6 @@ APP = os.getenv("APP")
 if APP is None: raise Exception("APP environment variable not set. No default parser available.")
 else:
     parser = parsers.ExtractorParserClass()
-    extractor = da.extractorsDict[APP](parser.args.output_dir, parser.args.app)
+    extractor = da.extractorsDict[APP](parser.args.output_dir, parser.args.app, yml_file=parser.args.yml_file)
 
 extractor.extract()

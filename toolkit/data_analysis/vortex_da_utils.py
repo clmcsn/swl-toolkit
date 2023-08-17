@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 
+from typing import OrderedDict
+
 fname_info = {
     'clusters'          : 'C',
     'cores'             : 'c',
@@ -143,3 +145,37 @@ def vortex_fault_handler(path):
     with open("fauty.txt","a") as f:
         f.write(path+"\n")
     os.remove(path)
+
+aggregated_cols_dict = OrderedDict({   'instrs':                   'sum',      
+                                        'cycles':                   'sum', 
+                                        'ibuffer_stalls':           'sum', 
+                                        'scoreboard_stalls':        'sum', 
+                                        'alu_unit_stalls':          'sum', 
+                                        'lsu_unit_stalls':          'sum', 
+                                        'csr_unit_stalls':          'sum', 
+                                        'fpu_unit_stalls':          'sum', 
+                                        'gpu_unit_stalls':          'sum',
+                                        'loads':                    'sum', 
+                                        'stores':                   'sum', 
+                                        'branches':                 'sum',
+                                        'icache_reads':             'sum', 
+                                        'icache_read_misses':       'sum', 
+                                        'dcache_reads':             'sum',
+                                        'dcache_writes':            'sum', 
+                                        'dcache_read_misses':       'sum', 
+                                        'dcache_write_misses':      'sum',
+                                        'dcache_bank_stalls':       'sum', 
+                                        'dcache_mshr_stalls':       'sum', 
+                                        'smem_reads':               'sum', 
+                                        'smem_writes':              'sum', 
+                                        'smem_bank_stalls':         'sum', 
+                                        'memory_requests':          'sum', 
+                                        'reads':                    'sum', 
+                                        'writes':                   'sum'})
+
+derived_cols_dict = OrderedDict({   'IPC':                      lambda x: x['instrs']/x['cycles'],
+                                    'icache_read_hit_ratio':    lambda x: 1 - x['icache_read_misses']/x['icache_reads'],
+                                    'dcache_read_hit_ratio':    lambda x: 1 - x['dcache_read_misses']/x['dcache_reads'],
+                                    'dcache_write_hit_ratio':   lambda x: 1 - x['dcache_write_misses']/x['dcache_writes'],
+                                    'dcache_bank_utilization':  lambda x: 1 - x['dcache_bank_stalls']/x['dcache_reads'], #Not sure about this
+                                    'smem_bank_utilization':    lambda x: 1 - x['smem_bank_stalls']/x['smem_reads']}) #Not sure about this})

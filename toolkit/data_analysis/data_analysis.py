@@ -27,7 +27,7 @@ class DataExtractionClass():
         df (pandas.DataFrame): dataframe to store extracted data.
         fault_str ([str,list]): string to indicate that the experiment is faulty. Default: "Error".
     """
-    def __init__(self, path, app, raw_subdir="raw/", inplace_only=False):
+    def __init__(self, path, app, raw_subdir="raw/", inplace_only=False, yml_file=""):
         #paths
         self.path = path if path[-1]=="/" else path + "/"
         self.raw_subdir = self.path + raw_subdir
@@ -37,6 +37,16 @@ class DataExtractionClass():
         #base attributes
         self.app = app
         self.inplace_only = inplace_only
+        self.yml_file = yml_file
+
+        #reducing attributes
+        self.file_list = []
+        if os.path.isfile(self.yml_file):
+            yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
+            self.file_list = yml["obj_list"]
+            self.file_list = [os.path.join(self.path, x) for x in self.file_list]
+        else:
+            self.file_list = [os.path.join(self.raw_subdir, x) for x in os.listdir(self.raw_subdir)]
         
         #members to be overloaded
         self.extracton_func = self.dummy_extraction
@@ -79,7 +89,7 @@ class DataExtractionClass():
             **kwargs: keyword arguments to pass to gen_csv method. See gen_csv method for more details.
         """
         #iterate over all files in the directory
-        for f in (os.path.join(self.raw_subdir, x) for x in os.listdir(self.raw_subdir)):
+        for f in self.file_list:
             r = self.is_exp_faulty(f)
             if r: 
                 self.fault_handler(f)
@@ -87,13 +97,12 @@ class DataExtractionClass():
             self.inplace_process(f)
             if (not self.inplace_only): self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
         if (not self.inplace_only):
-            if os.path.isfile(self.checkpoint_path):
-                try:
-                    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
-                    print("Added experiment metadata to dataframe.")
-                except:
-                    pass
-            else: raise Exception("Checkpoint file not found.")
+            try:
+                if os.path.isfile(self.checkpoint_path):
+                        self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+                        print("Added experiment metadata to dataframe.")
+                else: raise Exception("Checkpoint file not found.")
+            except Exception as e: print("WARNING: {}".format(e))
             self.dump_dataframe()
         self.post_extraction_func()
     
@@ -394,7 +403,7 @@ class VortexTracePostProcessingClass(DataExtractionClass):
     def __init__(self,path,app):
         super(VortexTracePostProcessingClass, self).__init__(   path=path,
                                                                 app=app,
-                                                                raw_subdir="/")
+                                                                raw_subdir="")
         self.extracton_func = self.trace_postprocessing
         self.post_extraction_func = self.post_extraction
         self.fault_checkers = [self.is_not_exp_dir]
@@ -447,16 +456,40 @@ class VortexTracePostProcessingClass(DataExtractionClass):
 
         for i in list(self.df["tag"].unique()):
             child_df = self.df.loc[self.df["tag"]==i]
-            gen_bar(child_df.sort_values(by="ID"), height="overhead", bar_names="ID", path=plot_path + "overhead{}.svg".format("_root" if i else ""))
-        #df = pd.DataFrame({})
-        #for i in range(len(df)):
-        #    df.loc[i, "overhead"] = self.db.loc[i]["overhead"]
-        #    df.loc[i, "ID"] = self.db.loc[i]["ID"]
-        #    if self.db.loc[i]["roof"]:
-        #        df.loc[i, "last-commit-roof"] = self.db.loc[i]["last-commit"]
-        #    else:
-        #        df.loc[i, "last-commit"] = self.db.loc[i]["last-commit"]
+            gen_bar(child_df.sort_values(by="ID"), height="overhead", bar_names="ID", path=plot_path + "overhead{}.svg".format("-"+i if i else ""))
         
+class VortexExperimentReductionClass(DataExtractionClass):
+    def __init__(self, path, app, yml_file):
+        super(VortexExperimentReductionClass, self).__init__(   path=path,
+                                                                app=app,
+                                                                raw_subdir="",
+                                                                yml_file=yml_file)
+        assert os.path.isfile(self.yml_file), "YAML file not found!"
+        yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
+        # setting up the attributes from the yaml file
+        self.common_df_cols = yml["merge_on"]
+        self.path = self.path + yml["output_dir"]
+        self.output_dataframe_path = self.path + "dataframe.feather"
+        
+        self.aggregated_cols = vda.aggregated_cols_dict
+        self.derived_cols = vda.derived_cols_dict
+        
+        self.extracton_func = self.data_collection
+        self.post_extraction_func = self.post_extraction
+
+    def data_collection(self, fpath):
+        df = pd.read_feather(fpath + "/dataframe.feather")
+        return df
+    
+    def post_extraction(self):
+        self.df = self.df.groupby(by=self.common_df_cols).agg(self.aggregated_cols)
+        for k in self.derived_cols.keys():
+            self.df[k] = self.df.apply(self.derived_cols[k], axis=1)
+        self.df.reset_index(inplace=True)
+        self.df.to_feather(self.output_dataframe_path)
+
+
 extractorsDict = {"vortex-run": VortexPerfExtractionClass,
                   "vortex-tan": VortexTraceAnalysisClass,
-                  "vortex-tpp": VortexTracePostProcessingClass,}
+                  "vortex-tpp": VortexTracePostProcessingClass,
+                  "vortex-red": VortexExperimentReductionClass}
