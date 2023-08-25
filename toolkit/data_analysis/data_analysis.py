@@ -1,6 +1,7 @@
-import pandas as pd
 import os
 import yaml
+import pandas as pd
+from typing import OrderedDict
 
 from . import vortex_da_utils as vda
 from . import utils
@@ -8,6 +9,7 @@ from .. import stream_parsing as sp
 from ..util import os_utils as osu
 from ..plots.trace import gen_trace_analysis, gen_time_traces
 from ..plots.bar import gen_bar
+from ..plots.violin import violin_plot
 
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
@@ -459,6 +461,18 @@ class VortexTracePostProcessingClass(DataExtractionClass):
             gen_bar(child_df.sort_values(by="ID"), height="overhead", bar_names="ID", path=plot_path + "overhead{}.svg".format("-"+i if i else ""))
         
 class VortexExperimentReductionClass(DataExtractionClass):
+    """
+    Class to reduce the data extracted from the experiment reports.
+    Args:
+        path (str): path to the directory where the experiment dataframes (obtained with stream_parsing) are stored.
+        app (str): Mandatory. Application name (e.g. resnet). Resulting reduced dataframe will have the specified 'app' as tag.
+
+    Attributes:
+        aggregated_cols (dict, can be overridden in child class): 
+            dictionary with keys = column names and values = aggregation functions.
+        derived_cols (dict, can be overridden in child class):
+            dictionary with keys = column names and values = functions to derive the column from aggregated ones.
+    """
     def __init__(self, path, app, yml_file):
         super(VortexExperimentReductionClass, self).__init__(   path=path,
                                                                 app=app,
@@ -469,6 +483,7 @@ class VortexExperimentReductionClass(DataExtractionClass):
         # setting up the attributes from the yaml file
         self.common_df_cols = yml["merge_on"]
         self.path = self.path + yml["output_dir"]
+        _ = osu.cmd("mkdir -p {}".format(self.path))
         self.output_dataframe_path = self.path + "dataframe.feather"
         
         self.aggregated_cols = vda.aggregated_cols_dict
@@ -486,10 +501,129 @@ class VortexExperimentReductionClass(DataExtractionClass):
         for k in self.derived_cols.keys():
             self.df[k] = self.df.apply(self.derived_cols[k], axis=1)
         self.df.reset_index(inplace=True)
+        self.df["app"] = self.app
         self.df.to_feather(self.output_dataframe_path)
 
+class VortexComparativeAnalysisClass(DataExtractionClass):
+    def __init__(self, path, app, yml_file, plot=True):
+        super(VortexComparativeAnalysisClass, self).__init__(   path=path,
+                                                                app=app,
+                                                                raw_subdir="",
+                                                                yml_file=yml_file)
+        assert os.path.isfile(self.yml_file), "YAML file not found!"
+        yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
+        self.plot = plot
+
+        #making output directory
+        self.path = self.path + yml["output_dir"]
+        _ = osu.cmd("mkdir -p {}".format(self.path))
+        self.output_dataframe_path = self.path + "/dataframe.feather"
+
+        # setting up the attributes from the yaml file
+        self.common_df_cols = yml["merge_on"]
+        self.col_to_compare = yml["col_to_compare"]
+        self.value_to_compare = yml["value_to_compare"]
+        self.col_ref_value = yml["col_ref_value"]
+
+        self.extracton_func = self.data_collection
+        self.post_extraction_func = self.post_extraction
+
+    def data_collection(self, fpath):
+        df = pd.read_feather(fpath + "/dataframe.feather")
+        if "resnet" in fpath:
+            df["app"] = "resnet"
+        elif "gcn" in fpath:
+            df["app"] = "gcn"
+        elif df["app"].unique() == "gcnSynth":
+            df["app"] = "aggr"
+        return df
+    
+    @staticmethod
+    def get_cmp_val(cols, ref_value):
+        ref_index = cols.index(ref_value)
+        index = 0 if ref_index else 1
+        return cols[index]
+
+    @staticmethod
+    def make_perc(x, cols, ref_value):
+        ref_index = cols.index(ref_value)
+        index = 0 if ref_index else 1
+        p = x[cols[index]] - x[cols[ref_index]]
+        r = p/x[cols[ref_index]] if p>0 else p/x[cols[index]]
+        r *= 100
+        return r
+
+    @staticmethod
+    def gen_str_ID(x, cols):
+        return "-".join([str(x[c]) for c in cols])
+
+
+    def post_extraction(self):
+        dfs = []
+        #make as many dataframes as the number of values to compare
+        for lws in self.df[self.col_to_compare].unique():
+            if lws == self.col_ref_value: continue
+            dfs.append(self.df.loc[(self.df[self.col_to_compare].isin([lws,self.col_ref_value]))])
+
+        #pivot the dataframes to make the comparison (%)
+        for i in range(len(dfs)):
+            dfs[i].reset_index(inplace=True)
+            dfs[i] = dfs[i].pivot(index=self.common_df_cols, columns=self.col_to_compare, values=self.value_to_compare)
+            cols = dfs[i].columns.tolist()
+            dfs[i]["%"] = dfs[i].apply(self.make_perc, axis=1, cols=cols, ref_value=self.col_ref_value)
+            dfs[i][self.col_to_compare] = [self.get_cmp_val(cols, self.col_ref_value)]*len(dfs[i].index)
+
+        #merge the dataframes
+        df = pd.DataFrame({})
+        for i in range(len(dfs)):
+            dfs[i].reset_index(inplace=True) #resetting the index to have the common columns (in the index) as columns
+            df = pd.concat([df, dfs[i]], ignore_index=True)
+
+        #sorting the dataframe
+        sort_list = [""]*len(self.file_list)
+        for app in df["app"].unique():
+            for i, f in enumerate(self.file_list):
+                if app in f: sort_list[i] = app
+        df["app"] = pd.Categorical(df["app"], sort_list)
+        df.sort_values(by=["app"], inplace=True)
+
+        #saving the dataframe
+        df.reset_index(inplace=True)
+        df.columns = df.columns.map(str)
+        df.to_feather(self.output_dataframe_path)
+
+        #generating analytics
+        df["str_ID"] = df.apply(self.gen_str_ID, axis=1, cols=self.common_df_cols) #generating a string ID for each row
+        for app in df["app"].unique():
+            d = OrderedDict({})
+            res_dir = self.path + "/" + app + "/"
+            _ = osu.cmd("mkdir -p {}".format(res_dir))
+            for comp in df[self.col_to_compare].unique():
+                file_name = self.col_to_compare + "_" + str(comp)
+                cdf = df.loc[(df["app"]==app) & (df[self.col_to_compare]==comp)]
+                cdf = cdf.sort_values(by="%", ascending=True)
+                d["Max Loss"] = float(cdf["%"].min())
+                d["Avg"] = float(cdf["%"].mean())
+                d["Avg Loss"] = float(cdf.loc[(df["%"]<0)]["%"].mean())
+                d["Avg Gain"] = float(cdf.loc[(df["%"]>0)]["%"].mean())
+                d["Equal"] = len(cdf.loc[(df["%"]==0)]["%"].index)
+                d["Worst"] = dict(zip(cdf.loc[(df["%"]<0)]["str_ID"],cdf.loc[(df["%"]<0)]["%"].astype(float)))
+                yaml.dump(d, open(res_dir + file_name + ".yml", "w"))
+                try:
+                    gen_bar(cdf.loc[(df["%"]<0)], height="%", bar_names="str_ID", 
+                                path=res_dir + file_name + ".svg")
+                except:
+                    print("No negative values found for {}".format(file_name))
+
+        if self.plot:
+            #plotting
+            plot_path = self.path + "/_plots/"
+            _ = osu.cmd("mkdir -p {}".format(plot_path))
+            violin_plot(df, x="app", y="%", hue=self.col_to_compare, path=plot_path + "violin.svg", size=(20,5), split=True)
+        
 
 extractorsDict = {"vortex-run": VortexPerfExtractionClass,
                   "vortex-tan": VortexTraceAnalysisClass,
                   "vortex-tpp": VortexTracePostProcessingClass,
-                  "vortex-red": VortexExperimentReductionClass}
+                  "vortex-red": VortexExperimentReductionClass,
+                  "vortex-cmp": VortexComparativeAnalysisClass}

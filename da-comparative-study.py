@@ -40,7 +40,7 @@ for d in dirs:
         if not os.path.isfile("dataframe.feather"): continue
         print(d)
         df = pd.read_feather("dataframe.feather")
-        cdf = pd.DataFrame({})
+        #cdf = pd.DataFrame({})
         df["hw"] = df.apply(gen_hw_str, axis=1)
         pivot = df.pivot(index="hw", columns="local_worksize", values="cycles")
         pivot.columns = pivot.columns.map(str)

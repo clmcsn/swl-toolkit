@@ -1,0 +1,20 @@
+obj_list:
+  - "IISWC-COMP-vecadd"
+  - "IISWC-COMP-relu"
+  - "IISWC-COMP-sgemm"
+  - "IISWC-COMP-sfilter"
+  - "IISWC-COMP-saxpy"
+  - "IISWC-COMP-nearn"
+  - "IISWC-COMP-aggr"
+  - "IISWC-COMP-resnet"
+  - "IISWC-COMP-gcn"
+merge_on:
+  - "clusters" 
+  - "cores"
+  - "warps"
+  - "threads"
+  - "app"
+output_dir:     "/IISWC-COMP"
+col_to_compare: "local_worksize"
+value_to_compare:  "cycles"
+col_ref_value:  0
