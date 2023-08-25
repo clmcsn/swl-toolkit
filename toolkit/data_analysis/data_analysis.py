@@ -14,20 +14,53 @@ from ..plots.violin import violin_plot
 #TODO: 
 #   - Keep track of the faulty reports in a separate df
 
+"""
+Data analysis toolkit for research experiments.
+Main classes:
+    DataExtractionClass: class to extract data from text experiment report.
+        generic class. Methods can be inerhited and overloaded. See below for more details.
+Derived classes:
+    VortexPerfExtractionClass: class to extract data from Vortex performance experiment report.
+        specific to vortex performance experiment reports.
+    VortexTraceAnalysisClass: class to extract data from Vortex trace.
+        specific to vortex trace sintax. --> obtained with stream_parsing
+    VortexTracePostProcessingClass: class to reduce the data extracted from multiple experiment reports (e.g. summing performances).
+        specific to vortex performance experiment reports.
+    VortexComparativeAnalysisClass: class to compare the data obtained from different experiment reports (e.g. with different methodologies).
+        specific to vortex performance experiment reports. Could be generalized.
+"""
+
 class DataExtractionClass():
     """
     Class to extract data from text experiment report.
     e.g.: experiment_cmd > experiment_report.txt 2>&1
-
+                            └── extract from this file!
     Methods:
-        extract: extract data from text experiment report.
-        gen_csv: generate csv file from extracted data.
+        Fixed:
+            extract:
+                Main method to extract data and/or inplace process the experiment result file.
+                Fixed but can be overloaded.
+                For every file in the path,  matching the fault_checker conditions, it:
+                    1. calls the inplace_process method
+                    2. calls the extracton_func method
+                Finally can perform a post_extraction_func method. 
+            dump_dataframe: generate feather file from extracted data.
+            is_exp_faulty: check if the experiment report is faulty, applying functions from the fault_checkers list.
 
     Attributes:
         path (str): path to the directory where the experiment reports are stored.
+        app (str): Mandatory. Application name (e.g. vecadd).
+        raw_subdir (str): subdirectory where the experiment reports are stored. main directory is self.path. Default: "raw/".
+        inplace_only (bool): if True, it only performs the inplace_process method. Default: False.
+        yml_file (str): path to the yaml file containing the list of experiment reports to process. Default: "".
+
+        file_list (list): list of experiment reports to process. Can be obtained automatically from the raw_subdir or from the yml_file.
         extracton_func (function): function to extract data from text experiment report.
+        inplace_process (function): function to process the experiment report inplace.
+        fault_checkers (list): list of functions to check if the experiment report is faulty.
+        fault_handler (function): function to handle faulty experiment reports (what to do if a faulty experiment is detected).
+        post_extraction_func (function): function to perform after the extraction process. (e.g. plotting or saving the extracted data)
         df (pandas.DataFrame): dataframe to store extracted data.
-        fault_str ([str,list]): string to indicate that the experiment is faulty. Default: "Error".
     """
     def __init__(self, path, app, raw_subdir="raw/", inplace_only=False, yml_file=""):
         #paths
@@ -85,10 +118,14 @@ class DataExtractionClass():
     def extract(self):
         """
         Extract data from text experiment report.
-        Args:
-            subdir (str): subdirectory where the experiment reports are stored. main directory is self.path. Default: "raw/".
-            export (bool): if True, it exports the experiment to a CSV file. Default: True.
-            **kwargs: keyword arguments to pass to gen_csv method. See gen_csv method for more details.
+        Loops over all the files in the path, matching the fault_checker conditions, and:
+            1. calls the inplace_process method
+            2. calls the extracton_func method
+        If inplace_only is False, it concatenates the extracted dataframes.
+        If a checkpoint file is present, it merges the extracted dataframe with the checkpoint dataframe.
+            (the checkpoint dataframe is generated while executing the actual experiments)
+        Finally can perform a post_extraction_func method.
+        Notes:
         """
         #iterate over all files in the directory
         for f in self.file_list:
@@ -115,6 +152,15 @@ class DataExtractionClass():
         self.df.to_feather(self.output_dataframe_path)
 
 class VortexPerfExtractionClass(DataExtractionClass):
+    """
+    Class to extract data from Vortex performance experiment report.
+    Overrides the DataExtractionClass methods.
+    List of methods overriden:
+        extracton_func -> vda.gen_df_from_log extracts the dataframe from the text experiment report.
+        fault_checkers -> [self.check_faults_by_string] checks if the experiment report is faulty by searching if a list of strings is present in the file.
+        fault_handlers -> vda.vortex_fault_handler handles faulty experiment reports.
+        post_extraction_func -> self.add_extraction_feedback_to_checkpoint adds extraction metadata to the checkpoint file (e.g., info if some experiments need to be repeated).
+    """
     def __init__(self,path,app):
         super(VortexPerfExtractionClass, self).__init__(    path=path,
                                                             app=app)
@@ -126,6 +172,7 @@ class VortexPerfExtractionClass(DataExtractionClass):
     def add_extraction_feedback_to_checkpoint(self):
         """
         Add extraction metadata to the checkpoint file.
+        e.g., if one experiment had problems, marks it as faulty and needs to be repeated.
         """
         experiments_df = pd.read_feather(self.checkpoint_path)
         bad_df = self.df[self.df.isnull().any(axis=1)]
@@ -154,6 +201,14 @@ class VortexPerfExtractionClass(DataExtractionClass):
         return 0
 
 class VortexTraceAnalysisClass(DataExtractionClass):
+    """
+    Class to analyze data from Vortex trace.
+    List of methods overriden:
+        extracton_func -> does not extract data from the text experiment report.
+        fault_checkers -> [self.is_not_db, self.check_empty_database, self.check_coherent_assembly] checks if the experiment report is faulty.
+        inplace_process -> self.trace_analysis performs the actual analysis.
+
+    """
     def __init__(self,path,app,plot=True):
         """
         Class to extract data from Vortex trace.
@@ -236,6 +291,10 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         return r
 
     def check_coherent_assembly(self, fpath):
+        """
+        Check if the assembly is coherent with the code sections map file.
+        This needs to be written by hand to tag PCs with the corresponding code section.
+        """
         r = False
         print("Checking assembly coherence...")
         ref_code_df = sp.DotDumpRISCVParsingClass(  output_path=self.path,
@@ -402,6 +461,14 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         
 
 class VortexTracePostProcessingClass(DataExtractionClass):
+    """
+    Class to post process the trace analysis data.
+    VortexTraceAnalysisClass needs to be run before to do the inplace analysis.
+    List of methods overriden:
+        extracton_func -> self.trace_postprocessing extracts the informations from the yml file produced by the VortexTraceAnalysisClass.
+        fault_checkers -> [self.is_not_exp_dir] checks if the directory is an experiment directory.
+        post_extraction_func -> self.post_extraction plots the extracted data.
+    """
     def __init__(self,path,app):
         super(VortexTracePostProcessingClass, self).__init__(   path=path,
                                                                 app=app,
@@ -549,9 +616,16 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
         ref_index = cols.index(ref_value)
         index = 0 if ref_index else 1
         p = x[cols[index]] - x[cols[ref_index]]
-        r = p/x[cols[ref_index]] if p>0 else p/x[cols[index]]
+        r = p/x[cols[index]] if p>0 else p/x[cols[ref_index]]
         r *= 100
         return r
+    
+    @staticmethod
+    def make_comparison(x, cols, ref_value):
+        ref_index = cols.index(ref_value)
+        index = 0 if ref_index else 1
+        p = x[cols[index]]/x[cols[ref_index]]
+        return p
 
     @staticmethod
     def gen_str_ID(x, cols):
@@ -570,7 +644,7 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
             dfs[i].reset_index(inplace=True)
             dfs[i] = dfs[i].pivot(index=self.common_df_cols, columns=self.col_to_compare, values=self.value_to_compare)
             cols = dfs[i].columns.tolist()
-            dfs[i]["%"] = dfs[i].apply(self.make_perc, axis=1, cols=cols, ref_value=self.col_ref_value)
+            dfs[i]["%"] = dfs[i].apply(self.make_comparison, axis=1, cols=cols, ref_value=self.col_ref_value) ##### here you can change the data analysis class
             dfs[i][self.col_to_compare] = [self.get_cmp_val(cols, self.col_ref_value)]*len(dfs[i].index)
 
         #merge the dataframes
@@ -604,9 +678,10 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
                 cdf = cdf.sort_values(by="%", ascending=True)
                 d["Max Loss"] = float(cdf["%"].min())
                 d["Avg"] = float(cdf["%"].mean())
-                d["Avg Loss"] = float(cdf.loc[(df["%"]<0)]["%"].mean())
-                d["Avg Gain"] = float(cdf.loc[(df["%"]>0)]["%"].mean())
-                d["Equal"] = len(cdf.loc[(df["%"]==0)]["%"].index)
+                d["Avg Loss"] = float(cdf.loc[(df["%"]<1)]["%"].mean())
+                d["Avg Gain"] = float(cdf.loc[(df["%"]>1)]["%"].mean())
+                d["Equal"] = len(cdf.loc[(df["%"]==1)]["%"].index)
+                d["Worse"] = len(cdf.loc[(df["%"]<1)]["%"].index)
                 d["Worst"] = dict(zip(cdf.loc[(df["%"]<0)]["str_ID"],cdf.loc[(df["%"]<0)]["%"].astype(float)))
                 yaml.dump(d, open(res_dir + file_name + ".yml", "w"))
                 try:

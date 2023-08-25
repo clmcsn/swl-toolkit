@@ -15,5 +15,8 @@ def gen_plot(path):
 def violin_plot(data, x, y, hue=None, path=None, size=None, split=False):
     init_plot()
     if size: plt.figure(figsize=size)
-    sns.violinplot(data=data, x=x, y=y, hue=hue, split=split)
+    data = data.loc[data[y]<=4]
+    sns.violinplot(data=data, x=x, y=y, hue=hue, split=split,cut=0)
+    #plt.ylim(0, 4)
+    #plt.yscale("log")
     gen_plot(path)
