@@ -320,6 +320,9 @@ class VortexTraceAnalysisClass(StreamParsingClass):
         return ret
 
 class DotDumpRISCVParsingClass(StreamParsingClass):
+    """
+    TODO we should extend the possibility to tag instructions with the function name (and not only the PC)
+    """
     def __init__(self, output_path: str, timeout: int = 0,
                     args: dict = {}, dump_file : str = ""):
         super().__init__(output_path, timeout)

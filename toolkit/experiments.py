@@ -204,7 +204,7 @@ class ExperimentManagerClass():
         os.makedirs(self.raw_output_path, exist_ok=True)
         self.checkpoint_path = self.output_path + self.checkpoint_fname
         self.experiment_dump_path = self.output_path + self.experiment_dump_fname
-        self.child_checkpoint_path = self.output_path + "checkpoint_{}.feather" if self.hierarchy=="Outer" else None
+        self.child_checkpoint_path = self.output_path + "checkpoint_{}.feather" if self.hierarchy=="Outer" else ""
         print("Output path set to {}".format(self.output_path))
         print("Raw output path set to {}".format(self.raw_output_path))
         print("Checkpoint path set to {}".format(self.checkpoint_path))

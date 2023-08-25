@@ -696,7 +696,9 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
             _ = osu.cmd("mkdir -p {}".format(plot_path))
             violin_plot(df, x="app", y="%", hue=self.col_to_compare, path=plot_path + "violin.svg", size=(20,5), split=True)
         
-
+"""
+Need to specify one of the possible strings below to select the correct class.
+"""
 extractorsDict = {"vortex-run": VortexPerfExtractionClass,
                   "vortex-tan": VortexTraceAnalysisClass,
                   "vortex-tpp": VortexTracePostProcessingClass,
