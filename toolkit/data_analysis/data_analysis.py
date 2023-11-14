@@ -209,65 +209,40 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         inplace_process -> self.trace_analysis performs the actual analysis.
 
     """
-    def __init__(self,path,app,plot=True):
+    def __init__(self,path,app,yml_file="",plot=True):
         """
         Class to extract data from Vortex trace.
         Args:
             path (str): path to the directory where the experiment dataframes (obtained with stream_parsing) are stored.
             app (str): Mandatory. Application name (e.g. vecadd).
         """
-        super(VortexTraceAnalysisClass, self).__init__(    path=path,
-                                                            app=app,
-                                                            inplace_only=True)
+        super(VortexTraceAnalysisClass, self).__init__( path=path,
+                                                        app=app,
+                                                        inplace_only=True)
         
+        self.yml_file = yml_file
         self.plot = plot
 
         self.extracton_func = self.dummy_extraction
         self.inplace_process = self.trace_analysis
         self.fault_checkers = [self.is_not_db, self.check_empty_database, self.check_coherent_assembly]
 
-        #Following line works only if script is run from the project root directory
-        input_path = os.getcwd() + "/inputs/kernel_assembly/" + self.app + "/" 
-        self.dotdump_path = input_path + self.app + ".dump"
-        self.code_sections = self.gen_code_map(input_path + "sections.yml")
-        self.iter_df = pd.DataFrame({})
-        self.iter_fname = ""
-
-    @staticmethod
-    def gen_code_map(code_sections_fname: str) -> dict:
-        """
-        Generate a code map (lookup table) from a yaml file.
-        Args:
-            code_sections_fname (str): path to the yaml file containing the code sections.
-        Returns:
-            dict: code map. Dictionary with keys = code instruction PC names and values = list of code section addresses.
-        """
-        code_sections = yaml.load(open(code_sections_fname, "r"), Loader=yaml.FullLoader)
-        code_map = {}
-        #Generating a list of PC addresses for each code section
-        for s in code_sections.keys():
-            code_map[s] = []
-            for e in code_sections[s]:
-                if type(e) == int: code_map[s].append(e)
-                elif type(e) == list: code_map[s].extend(e)
-                elif type(e) == str: 
-                    ee = e.split(":")
-                    code_map[s].extend(range(int(ee[0],base=16),int(ee[1],base=16)+1,4))
+        #Getting the PC tag section map and the dotdump path
+        if not os.path.isfile(self.yml_file):
+            #Following line works only if script is run from the project root directory
+            input_path = os.getcwd() + "/inputs/kernel_assembly/" + self.app + "/" 
+            self.dotdump_path = input_path + self.app + ".dump"
+            self.code_sections = self.gen_code_map(input_path + "sections.yml")
+        else:
+            yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
+            self.dotdump_path = yml["dotdump_path"]
+            self.code_sections = self.gen_code_map(yml["code_sections_path"])
         
-        #Generating program boundaries
-        vmin = 0x80000000
-        vmax = vmin
-        for s in code_map.keys():
-            vmax = max(vmax, max(code_map[s])) #getting the max value of the code map
+        if not os.path.isfile(self.dotdump_path): raise Exception("Dotdump file not found!")
 
-        #Generating the reverse code map -> key = PC address, value = code section name
-        ret_code_map = {}
-        for i in range(vmin,vmax+1):
-            for s in code_map.keys():
-                if i in code_map[s]:
-                    ret_code_map[i] = s
-                    break
-        return ret_code_map   
+        self.ref_code_df
+        self.iter_df = pd.DataFrame({})
+        self.iter_fname = "" 
 
     # ------------------------ FAULT CHECKERS ------------------- #
     @staticmethod
@@ -297,10 +272,10 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         """
         r = False
         print("Checking assembly coherence...")
-        ref_code_df = sp.DotDumpRISCVParsingClass(  output_path=self.path,
+        self.ref_code_df = sp.DotDumpRISCVParsingClass(  output_path=self.path,
                                                     dump_file=self.dotdump_path).get_df()
         instr_df = self.iter_df[['PC-id','instr']]
-        if not instr_df.isin(ref_code_df).all().all(): r = False
+        if not instr_df.isin(self.ref_code_df).all().all(): r = False
         else: r = True
         if not r: print("Assembly looks OK!")
         else: print("ERROR: Assembly is not coherent!")
@@ -382,6 +357,52 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         info["overhead"] = (info["last-commit"] - info["section-exec-time"]["kernel"]*info["section-exec-count"]["kernel"]/info["section-thread-exec-count"]["kernel"]) / info["last-commit"] * 100
         return info
     
+    @staticmethod
+    def gen_code_map(code_sections_fname: str) -> dict:
+        """
+        Generate a code map (lookup table) from a yaml file.
+        Args:
+            code_sections_fname (str): path to the yaml file containing the code sections.
+        Returns:
+            dict: code map. Dictionary with keys = code instruction PC names and values = list of code section addresses.
+        """
+        if not os.path.isfile(code_sections_fname):
+            print("Code sections file not found!")
+            return {}
+        
+        code_sections = yaml.load(open(code_sections_fname, "r"), Loader=yaml.FullLoader)
+        code_map = {}
+        #Generating a list of PC addresses for each code section
+        for s in code_sections.keys():
+            code_map[s] = []
+            for e in code_sections[s]:
+                if type(e) == int: code_map[s].append(e)
+                elif type(e) == list: code_map[s].extend(e)
+                elif type(e) == str: 
+                    ee = e.split(":")
+                    code_map[s].extend(range(int(ee[0],base=16),int(ee[1],base=16)+1,4))
+        
+        #Generating program boundaries
+        vmin = 0x80000000
+        vmax = vmin
+        for s in code_map.keys():
+            vmax = max(vmax, max(code_map[s])) #getting the max value of the code map
+
+        #Generating the reverse code map -> key = PC address, value = code section name
+        ret_code_map = {}
+        for i in range(vmin,vmax+1):
+            for s in code_map.keys():
+                if i in code_map[s]:
+                    ret_code_map[i] = s
+                    break
+        return ret_code_map
+    
+    @staticmethod
+    def gen_func_code_map(dot_dump_fname: str) -> pd.DataFrame:
+        return sp.DotDumpRISCVParsingClass(  output_path="", 
+                                                dump_file=dot_dump_fname).get_df()
+
+
 # ----------------------------------------------------------- #
 # ------------------------ MAIN FUNCTIONS ------------------- #
 
@@ -449,7 +470,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 return self.code_sections[x["PC"]]
             except:
                 return "fini"
-        self.iter_df["code_section"]    = self.iter_df.apply(get_code_section, axis=1)
+        if self.code_sections: self.iter_df["code_section"]    = self.iter_df.apply(get_code_section, axis=1)
         self.iter_df["e_count"]         = self.iter_df.apply(self.get_exec_count, axis=1)
 
         stripped_df_name = self.iter_fname.split("/")[-1].split(".")[0]
