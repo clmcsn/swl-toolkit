@@ -372,7 +372,7 @@ class DotDumpRISCVParsingClass(StreamParsingClass):
         
     def get_instruction_stats(self, line):
         lline = line.strip().split()
-        self.iter_dict["PC-id"] = lline[0][:-1]
+        self.iter_dict["PC-id"] = "0x" + lline[0][:-1]
         self.iter_dict["instr"] = self.remap_assembly(lline[5])
         self.iter_dict["func"] = self.func_name
         self.df = pd.concat([self.df, pd.DataFrame(self.iter_dict, index=[0])], ignore_index=True)

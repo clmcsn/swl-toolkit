@@ -4,9 +4,9 @@ import traceback
 import multiprocessing.pool as mpp
 from multiprocessing import Manager
 
-import util.parsers.launcher as parsers
-from util.os_utils import cd, cmd, current_utctime_string
-import scripts.toolkit.stream_parsing as stream_parsing
+import toolkit.util.parsers.launcher as parsers
+from toolkit.util.os_utils import cd, cmd, current_utctime_string
+import toolkit.stream_parsing as stream_parsing
 
 import resource
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))

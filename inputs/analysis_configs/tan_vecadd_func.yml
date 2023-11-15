@@ -1,0 +1,14 @@
+synth_pivot : "func"
+dotdump_path : "../tests/opencl/vecadd/vecadd.dump"
+code_sections_path : ""
+plot : "complete"
+overhead_key : "_pocl_kernel_vecadd_workgroup"
+zoomed_plot_keys : 
+  - "_pocl_kernel_vecadd_workgroup"
+  - "vx_spawn_kernel"
+  - "spawn_kernel_all_cb"
+  - "spawn_kernel_all_stub"
+  - "spawn_kernel_rem_cb"
+  - "spawn_kernel_rem_stub"
+sections_to_drop : []
+roofline_tag : ""

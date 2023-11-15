@@ -2,8 +2,8 @@ import yaml
 import os
 
 from .script import ScriptsParserClass
-from scripts.toolkit.experiments import ExperimentManagerClass, ExperimentStringParserClass
-from util.os_utils import cmd, current_utctime_string
+from toolkit.experiments import ExperimentManagerClass, ExperimentStringParserClass
+from toolkit.util.os_utils import cmd, current_utctime_string
 
 
 class LauncherParserClass(ScriptsParserClass):

@@ -13,6 +13,7 @@ def gen_plot(path):
     plt.clf()
     
 colors = ["blue", "red", "green", "yellow", "orange", "purple", "pink", "brown", "gray", "olive", "cyan", "magenta"]
+colors_len = len(colors)
 
 def gen_time_traces(df, traces_col_name, period_col_name, start_col_name, path=None):
     #https://gist.github.com/Thiagobc23/ad0f228dd8a6b1c9a9e148f17de5b4b0
@@ -29,7 +30,7 @@ def gen_time_traces(df, traces_col_name, period_col_name, start_col_name, path=N
     df["end"] = df[start_col_name].add(df[period_col_name])
 
     for i, t in enumerate(list(df[traces_col_name].unique())): 
-        df.loc[df[traces_col_name] == t, "color"] = colors[i]
+        df.loc[df[traces_col_name] == t, "color"] = colors[i%colors_len]
 
     fig, (ax, ax1) = plt.subplots(2, figsize=(16,6), gridspec_kw={'height_ratios':[6, 1]})
     ax.barh(df[traces_col_name], df[period_col_name], left=df[start_col_name], color=df.color, edgecolor = "none")
@@ -58,7 +59,7 @@ def gen_time_traces(df, traces_col_name, period_col_name, start_col_name, path=N
     ax.spines['left'].set_position(('outward', 10))
     ax.spines['top'].set_visible(False)
 
-    legend_elements = [Patch(facecolor=colors[i], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
+    legend_elements = [Patch(facecolor=colors[i%colors_len], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
     ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.1, 1.0))
 
     # clean second axis
@@ -84,6 +85,10 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     """
     
     """Generating plot limits for removing starting bias"""
+
+    df = df.copy()
+    synthetic_df = synthetic_df.copy()
+
     if remove_bias:
         start = df[start_col_name].min()
         if start > 0:
@@ -93,12 +98,15 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
         if start > 0:
             synthetic_df = synthetic_df.apply(lambda x: x-start if (x.name == start_col_name) else x)
 
-    df["end"] = df[start_col_name].add(df[period_col_name])
+    df["end"] = df.loc[:, start_col_name].add(df.loc[:, period_col_name])
     #df["end"] = df.apply(lambda x: x[start_col_name]+x[period_col_name])
 
     """Assigning colors to traces sections"""
     for i, t in enumerate(list(df[traces_col_name].unique())): 
-        synthetic_df.loc[synthetic_df[traces_col_name] == t, "color"] = colors[i]
+        synthetic_df.loc[synthetic_df[traces_col_name] == t, "color"] = colors[i%colors_len]
+    #better way:
+    #synthetic_df['color'] = synthetic_df.groupby(traces_col_name).cumcount() % colors_len
+    #synthetic_df['color'] = synthetic_df['color'].apply(lambda x: colors[x])
 
     _, (ax, ax1) = plt.subplots(2, figsize=(16,5), gridspec_kw={'height_ratios':[1, 3]}, sharex=True)
     
@@ -132,7 +140,7 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     ax1.xaxis.grid(color='gray', linestyle='dashed', which='major', alpha=0.5)
 
     """Adding legend for waveform plot"""
-    legend_elements = [Patch(facecolor=colors[i], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
+    legend_elements = [Patch(facecolor=colors[i%colors_len], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
     ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.1, 1.0))
 
     """Adding the actual plots"""
