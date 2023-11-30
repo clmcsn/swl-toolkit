@@ -42,4 +42,5 @@ templateDict = {
     "igemm" : Map(CMD=[CondorVortexCmdTemplate, sgemmCmd], DICT=sgemmDefaults, STR=sgemmResFname),
     "sfilter" : Map(CMD=[CondorVortexCmdTemplate, sfilterCmd], DICT=sfilterDefaults, STR=sfilterResFname),
     "badd" : Map(CMD=[CondorVortexCmdTemplate, baddCmd], DICT=baddDefaults, STR=baddResFname),
-    "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname)}
+    "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname),
+    "vecadd-limbo" : Map(CMD=[CondorVortexCmdTemplate, {"launcher" : '{launcher}'}], DICT={"launcher" : "make -C ./tests/runtime/vecadd-limbo/ run-simx"}, STR={"ID": '{ID}', "app": '{app}'})}

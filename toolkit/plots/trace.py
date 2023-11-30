@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import seaborn as sns
 import pandas as pd
 import numpy as np
 import math
 from matplotlib.patches import Patch
+import random
 
 def gen_plot(path):
     if path:
@@ -12,7 +14,8 @@ def gen_plot(path):
         plt.show()
     plt.clf()
     
-colors = ["blue", "red", "green", "yellow", "orange", "purple", "pink", "brown", "gray", "olive", "cyan", "magenta"]
+colors = list(mcolors.CSS4_COLORS.keys())
+random.shuffle(colors)
 colors_len = len(colors)
 
 def gen_time_traces(df, traces_col_name, period_col_name, start_col_name, path=None):
@@ -85,7 +88,8 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     """
     
     """Generating plot limits for removing starting bias"""
-
+    time_span=10500
+    if len(df) >= 10000: return
     df = df.copy()
     synthetic_df = synthetic_df.copy()
 
@@ -140,8 +144,7 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     ax1.xaxis.grid(color='gray', linestyle='dashed', which='major', alpha=0.5)
 
     """Adding legend for waveform plot"""
-    legend_elements = [Patch(facecolor=colors[i%colors_len], label=t) for i, t in enumerate(list(df[traces_col_name].unique()))]
-    ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.1, 1.0))
+    legend_elements = [Patch(facecolor=colors[i%colors_len], label=t.lstrip("_")) for i, t in enumerate(list(df[traces_col_name].unique()))]
 
     """Adding the actual plots"""
     #Waveform plot
@@ -178,6 +181,8 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     ax2.set_yticks(yticks)
     ax2.set_yticklabels(yticks)
     ax2.set_ylim([0, y_ax_limit+0.1])
+
+    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.1, 1.0))
 
     gen_plot(path)
     plt.close('all')

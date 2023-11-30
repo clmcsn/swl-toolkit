@@ -315,7 +315,7 @@ class VortexTraceAnalysisClass(StreamParsingClass):
 
     def run(self):
         ret = super().run()
-        if ret == 0:
+        if ret == 0 or ret == 2:
             self.df.to_feather(self.output_file)
         return ret
 
@@ -337,13 +337,27 @@ class DotDumpRISCVParsingClass(StreamParsingClass):
         self.dump_file = dump_file
         self.cmd_arg_dict["dump_file"] = self.dump_file
 
+        self.format = "ELF32-riscv"
         self.in_code_section = False
         self.func_name = "---"
         self.iter_dict = {}
         self.df = pd.DataFrame({})
 
+    def is_file_format(self, line):
+        if not self.in_code_section:
+            lline = line.strip().split()
+            if len(lline) == 4:
+                if lline[0].endswith("elf:"):
+                    if lline[-1] != "ELF32-riscv":
+                        print("Warning: file format is not ELF32-riscv")
+                        print("File format is: {}".format(lline[-1]))
+                        self.format = lline[-1]
+                    return True
+        return False
+
     def is_out_of_code_section(self, line):
         if line.strip() == "": return True
+        if self.is_file_format(line): return True
         if line.startswith("Disassembly of section"):
             if (".text:" in line) or (".init:" in line):
                 self.in_code_section = True
@@ -357,7 +371,8 @@ class DotDumpRISCVParsingClass(StreamParsingClass):
         if self.in_code_section:
             lline = line.strip().split()
             if len(lline) == 2:
-                self.func_name = lline[1][:-1]
+                if self.format == "ELF32-riscv":            self.func_name = lline[1][:-1]
+                elif self.format == "elf32-littleriscv":    self.func_name = lline[1][1:-2] # remove < and >: e.g. <main>: -> main
                 return True
         return False
     
@@ -373,7 +388,8 @@ class DotDumpRISCVParsingClass(StreamParsingClass):
     def get_instruction_stats(self, line):
         lline = line.strip().split()
         self.iter_dict["PC-id"] = "0x" + lline[0][:-1]
-        self.iter_dict["instr"] = self.remap_assembly(lline[5])
+        if self.format == "ELF32-riscv":            self.iter_dict["instr"] = self.remap_assembly(lline[5])
+        elif self.format == "elf32-littleriscv":    self.iter_dict["instr"] = self.remap_assembly(lline[2])
         self.iter_dict["func"] = self.func_name
         self.df = pd.concat([self.df, pd.DataFrame(self.iter_dict, index=[0])], ignore_index=True)
 
