@@ -13,10 +13,6 @@ from . import experiments as exs
 # implement timers
 # implement trace analysis child class
 
-#TODO refactor:
-# make the class more general based on experience
-# separate classes in subdirectories
-
 class StreamParsingClass(object):
     """
     Base class for parsing the stream of data coming from a command.

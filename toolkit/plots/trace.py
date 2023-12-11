@@ -88,7 +88,7 @@ def gen_trace_analysis(synthetic_df, df, traces_col_name, period_col_name, start
     """
     
     """Generating plot limits for removing starting bias"""
-    time_span=10500
+    #time_span=10500
     if len(df) >= 10000: return
     df = df.copy()
     synthetic_df = synthetic_df.copy()
