@@ -2,6 +2,7 @@ from inputs.templates.vortex import VortexCmdTemplate, VortexDefaults, VortexRes
 
 vecaddCmd = dict(VortexCmdTemplate)
 vecaddCmd.update( {
+    "app"               : '--app={app} --perf',
     "workload_size"     : '--args="-n {workload_size} ',
     "local_worksize"    : '-b {local_worksize}"'
 })

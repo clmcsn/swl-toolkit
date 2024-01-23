@@ -31,6 +31,10 @@ from inputs.templates.nearn import nearnCmd, nearnDefaults, nearnResFname
 # badd ---------------------------------------------------------------------
 from inputs.templates.badd import baddCmd, baddDefaults, baddResFname
 # ----------------------------------------------------------------------------
+# vecadd-limbo ---------------------------------------------------------------------
+from inputs.templates.vecadd_airbender import vecaddAirbenderCmd, vecaddAirbenderDefaults, vecaddAirbenderResFname
+# ----------------------------------------------------------------------------
+
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
@@ -43,4 +47,4 @@ templateDict = {
     "sfilter" : Map(CMD=[CondorVortexCmdTemplate, sfilterCmd], DICT=sfilterDefaults, STR=sfilterResFname),
     "badd" : Map(CMD=[CondorVortexCmdTemplate, baddCmd], DICT=baddDefaults, STR=baddResFname),
     "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname),
-    "vecadd-limbo" : Map(CMD=[CondorVortexCmdTemplate, {"launcher" : '{launcher}'}], DICT={"launcher" : "make -C ./tests/runtime/vecadd-limbo/ run-simx"}, STR={"ID": '{ID}', "app": '{app}'})}
+    "vecadd-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname)}
