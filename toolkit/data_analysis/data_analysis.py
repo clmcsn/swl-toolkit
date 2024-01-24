@@ -224,7 +224,8 @@ class VortexTraceAnalysisClass(DataExtractionClass):
 
         #Making default yml file
         input_path = os.getcwd() + "/inputs/kernels_assembly/" + self.app + "/" 
-        self.configs = {"synth_pivot": "func", 
+        self.configs = {"synth_pivot": "func",
+                        "kernel_key" : "",
                         "dotdump_path": input_path + self.app + ".dump",
                         "code_sections_path": input_path + "sections.yml",
                         "plot": "",
@@ -232,13 +233,15 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                         "zoomed_plot_keys": [],
                         "sections_to_drop": [],
                         "roofline_tag": ""}
-        if os.path.isfile(self.yml_file): self.configs = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
+
+        if self.yml_file:
+            if os.path.isfile(self.yml_file): 
+                self.configs = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
 
         #Getting the PC tag section map and the dotdump path
-        if not os.path.isfile(self.configs["dotdump_path"]): raise Exception("Dotdump file not found!")
-        self.ref_code_df = sp.DotDumpRISCVParsingClass(  output_path=self.path,
-                                                        dump_file=self.configs["dotdump_path"]).get_df()
-        
+        self.ref_code_df = self.gen_ref_code_df()
+        self.iter_ref_code_df = pd.DataFrame({})
+
         self.code_sections = self.gen_code_map(self.configs["code_sections_path"])
 
         #Setting up the class functions
@@ -249,6 +252,19 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         #Initializing the class members
         self.iter_df = pd.DataFrame({})
         self.iter_fname = "" 
+
+    def gen_ref_code_df(self):
+        if self.configs["kernel_key"]:
+            ret = {}
+            for k in self.configs["dotdump_path"].keys():
+                if not os.path.isfile(self.configs["dotdump_path"][k]): raise Exception("Dotdump file {} not found!".format(self.configs["dotdump_path"][k]))
+                ret[k] = sp.DotDumpRISCVParsingClass(  output_path=self.path,
+                                                        dump_file=self.configs["dotdump_path"][k]).get_df()
+        else:
+            if not os.path.isfile(self.configs["dotdump_path"]): raise Exception("Dotdump file not found!")
+            ret = sp.DotDumpRISCVParsingClass(  output_path=self.path,
+                                                dump_file=self.configs["dotdump_path"]).get_df()
+        return ret
 
     # ------------------------ FAULT CHECKERS ------------------- #
     @staticmethod
@@ -276,10 +292,17 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         Check if the assembly is coherent with the code sections map file.
         This needs to be written by hand to tag PCs with the corresponding code section.
         """
+        def get_ref_code_df(ref_code_df, fpath):
+            if type(ref_code_df) == dict:
+                for k in ref_code_df.keys():
+                    if "_"+k+"_" in fpath: return ref_code_df[k]
+            else: return ref_code_df
+
         r = False
+        self.iter_ref_code_df = get_ref_code_df(self.ref_code_df, fpath)
         print("Checking assembly coherence...")
         instr_df = self.iter_df[['PC-id','instr']]
-        if not instr_df.isin(self.ref_code_df).all().all(): r = False
+        if not instr_df.isin(iter_ref_code_df).all().all(): r = False
         else: r = True
         if not r: print("Assembly looks OK!")
         else: print("ERROR: Assembly is not coherent!")
@@ -498,7 +521,7 @@ class VortexTraceAnalysisClass(DataExtractionClass):
                 return "fini"
         if self.code_sections: self.iter_df["code_section"]    = self.iter_df.apply(get_code_section, axis=1)
         #----------Add function names
-        self.iter_df = pd.merge(self.iter_df, self.ref_code_df.drop("instr",axis=1), on="PC-id", how="left")
+        self.iter_df = pd.merge(self.iter_df, self.iter_ref_code_df.drop("instr",axis=1), on="PC-id", how="left")
         #----------Add active threads
         self.iter_df["e_count"]         = self.iter_df.apply(self.get_exec_count, axis=1)
 

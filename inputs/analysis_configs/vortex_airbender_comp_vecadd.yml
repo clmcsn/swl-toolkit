@@ -1,0 +1,20 @@
+synth_pivot : "func"
+kernel_key: "kernel"
+dotdump_path : 
+  vecadd : "../tests/airbender/vecadd/dump/vecadd.dump"
+  vecadd-limbo : "../tests/airbender/vecadd/dump/vecadd-limbo.dump"
+code_sections_path : ""
+plot : "complete"
+overhead_key : "vecadd"
+zoomed_plot_keys : 
+  - "vecadd"
+  - "vx_spawn_tasks"
+  - "spawn_tasks_all_cb"
+  - "spawn_tasks_all_stub"
+  - "spawn_tasks_rem_cb"
+  - "spawn_tasks_rem_stub"
+  - "ab_spawn_tasks_all_stub"
+  - "ab_spawn_tasks_all_cb"
+  - "vx_ab_spawn_tasks"
+sections_to_drop : []
+roofline_tag : ""

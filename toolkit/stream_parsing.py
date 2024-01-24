@@ -207,7 +207,7 @@ class LsStreamParsingClass(StreamParsingClass):
 
     def __str__(self) -> str:
         return str(self.df)
-        
+ 
 class VortexTraceAnalysisClass(StreamParsingClass):
     def __init__(self, output_file: str, timeout: int = 0,
                         args: dict = {}, exp : exs.ExperimentClass = exs.ExperimentClass({})):
@@ -266,7 +266,7 @@ class VortexTraceAnalysisClass(StreamParsingClass):
             else:
                 pass
         return d
-    
+
     @staticmethod
     def get_trace_line_dict(line):
         lline = line.split()
@@ -274,15 +274,15 @@ class VortexTraceAnalysisClass(StreamParsingClass):
         d["time-stmp"]  = int(lline[1][:-1]) # remove the trailing semicolon
         d.update(VortexTraceAnalysisClass.get_instr_dict(lline[2:]))
         return d
-    
+
     def register_schedule(self, d):
         self.df.loc[self.df["eID"] == d["eID"], "schedule-stmp"] = d["time-stmp"]
-    
+
     def register_commit(self, d):
         schedule_stmp = self.df.loc[self.df["eID"] == d["eID"], "schedule-stmp"].values[0]
         commit_stmp = d["time-stmp"]
         self.df.loc[self.df["eID"] == d["eID"], "total-exec-time"] = commit_stmp - schedule_stmp
-    
+
     def reduce_trace(self, line):
         if "pipeline-schedule:" in line:
             self.register_schedule(self.get_trace_line_dict(line))
@@ -290,7 +290,7 @@ class VortexTraceAnalysisClass(StreamParsingClass):
             self.register_commit(self.get_trace_line_dict(line))
         else:
             pass
-    
+
     def register_new_instruction(self):
         self.df = pd.concat([self.df, pd.DataFrame(self.iter_dict, index=[0])], ignore_index=True)
 
@@ -312,7 +312,8 @@ class VortexTraceAnalysisClass(StreamParsingClass):
     def run(self):
         ret = super().run()
         if ret == 0 or ret == 2:
-            self.df.to_feather(self.output_file)
+            if not self.df.empty:
+                self.df.to_feather(self.output_file)
         return ret
 
 class DotDumpRISCVParsingClass(StreamParsingClass):

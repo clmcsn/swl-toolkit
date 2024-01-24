@@ -4,7 +4,7 @@ clusters  : 1
 threads   : 8
 warps     : 4
 cores     : 4
-l2cache   : 0
+l2cache   : False
 workload_size : "64:7"
 optimize : "-1"
 kernel : 

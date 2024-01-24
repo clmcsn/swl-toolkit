@@ -102,7 +102,8 @@ class ExperimentClass():
         name = []
         for k in TPL.templateDict[self.app].CMD[1].keys():
             if k in self.experiments.keys():
-                name.append(TPL.templateDict[self.app].CMD[1][k].format(**{k:self.experiments[k]}))
+                if not self.experiments[k] == False:
+                    name.append(TPL.templateDict[self.app].CMD[1][k].format(**{k:self.experiments[k]}))
         return " ".join(name)
 
     def make_result_fname(self):
