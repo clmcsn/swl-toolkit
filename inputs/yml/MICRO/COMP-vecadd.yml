@@ -6,9 +6,7 @@ warps     : 4
 cores     : 4
 l2cache   : 0
 workload_size : "64:7"
-optimize : 
-  - 0
-  - 1
+optimize : "-1"
 kernel : 
   - vecadd-limbo
   - vecadd
