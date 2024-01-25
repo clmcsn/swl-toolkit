@@ -254,9 +254,12 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         self.iter_fname = "" 
 
     def gen_ref_code_df(self):
+        print("Generating reference code dataframe...")
         if self.configs["kernel_key"]:
+            print("Found multiple dotdump files...")
             ret = {}
             for k in self.configs["dotdump_path"].keys():
+                print("--->Generating reference code dataframe for {}...".format(k))
                 if not os.path.isfile(self.configs["dotdump_path"][k]): raise Exception("Dotdump file {} not found!".format(self.configs["dotdump_path"][k]))
                 ret[k] = sp.DotDumpRISCVParsingClass(  output_path=self.path,
                                                         dump_file=self.configs["dotdump_path"][k]).get_df()
@@ -295,14 +298,15 @@ class VortexTraceAnalysisClass(DataExtractionClass):
         def get_ref_code_df(ref_code_df, fpath):
             if type(ref_code_df) == dict:
                 for k in ref_code_df.keys():
-                    if "_"+k+"_" in fpath: return ref_code_df[k]
+                    if "_"+k+"_" in fpath or "_"+k+"." in fpath:
+                        return ref_code_df[k]
             else: return ref_code_df
 
         r = False
         self.iter_ref_code_df = get_ref_code_df(self.ref_code_df, fpath)
         print("Checking assembly coherence...")
         instr_df = self.iter_df[['PC-id','instr']]
-        if not instr_df.isin(iter_ref_code_df).all().all(): r = False
+        if not instr_df.isin(self.iter_ref_code_df).all().all(): r = False
         else: r = True
         if not r: print("Assembly looks OK!")
         else: print("ERROR: Assembly is not coherent!")

@@ -3,9 +3,9 @@ driver    : simx
 clusters  : 1
 threads   : 8
 warps     : 4
-cores     : 4
-l2cache   : False
-workload_size : "64:7"
+cores     : 1
+l2cache   : True
+workload_size : "128:9"
 optimize : "-1"
 kernel : 
   - vecadd-limbo

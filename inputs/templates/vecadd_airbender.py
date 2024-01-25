@@ -12,7 +12,6 @@ vecaddAirbenderCmd.update({
 
 vecaddAirbenderDefaults = dict(VortexDefaults)
 vecaddAirbenderDefaults.update({
-    "launcher" : "./ci/blackbox-airbender.sh",
     "workload_size" : "256",
     "optimize" : "0",
     "kernel" : "vecadd"
