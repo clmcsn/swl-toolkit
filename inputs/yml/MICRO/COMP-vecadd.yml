@@ -1,12 +1,21 @@
 app       : vecadd-airbender
 driver    : simx
 clusters  : 1
-threads   : 8
+threads   : 4
 warps     : 4
 cores     : 1
 l2cache   : True
-workload_size : "128:9"
+workload_size :
+  - 191
+  - 319
+  - 575
+  - 1087
+  - 2111
+  - 4159
+  - 8255
+  - 16447
 optimize : "-1"
+repeat : 1000
 kernel : 
   - vecadd-limbo
   - vecadd
