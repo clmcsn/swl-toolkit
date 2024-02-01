@@ -1,6 +1,8 @@
 import os
 import yaml
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from typing import OrderedDict
 
 from . import vortex_da_utils as vda
@@ -78,11 +80,14 @@ class DataExtractionClass():
         self.file_list = []
         if os.path.isfile(self.yml_file):
             yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
-            self.file_list = yml["obj_list"]
-            self.file_list = [os.path.join(self.path, x) for x in self.file_list]
+            try:
+                self.file_list = yml["input_list"]
+                #self.file_list = [os.path.join(self.path, x) for x in self.file_list]
+            except:
+                pass
         else:
             self.file_list = [os.path.join(self.raw_subdir, x) for x in os.listdir(self.raw_subdir)]
-        
+
         #members to be overloaded
         self.extracton_func = self.dummy_extraction
         self.inplace_process = self.dummy_inplace_process
@@ -134,17 +139,19 @@ class DataExtractionClass():
                 self.fault_handler(f)
                 continue
             self.inplace_process(f)
-            if (not self.inplace_only): self.df = pd.concat([self.df, self.extracton_func(f)], ignore_index=True)
-        if (not self.inplace_only):
+            if not self.inplace_only: self.df = pd.concat([self.df,
+                                                           self.extracton_func(f)],
+                                                          ignore_index=True)
+        if not self.inplace_only:
             try:
                 if os.path.isfile(self.checkpoint_path):
-                        self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
-                        print("Added experiment metadata to dataframe.")
+                    self.df = pd.merge(self.df, pd.read_feather(self.checkpoint_path), on="ID")
+                    print("Added experiment metadata to dataframe.")
                 else: raise Exception("Checkpoint file not found.")
             except Exception as e: print("WARNING: {}".format(e))
             self.dump_dataframe()
         self.post_extraction_func()
-    
+
     def dump_dataframe(self):
         if os.path.isfile(self.output_dataframe_path):
             print("Dataframe already present...")
@@ -161,7 +168,7 @@ class VortexPerfExtractionClass(DataExtractionClass):
         fault_handlers -> vda.vortex_fault_handler handles faulty experiment reports.
         post_extraction_func -> self.add_extraction_feedback_to_checkpoint adds extraction metadata to the checkpoint file (e.g., info if some experiments need to be repeated).
     """
-    def __init__(self,path,app):
+    def __init__(self,path,app,yml_file=""):
         super(VortexPerfExtractionClass, self).__init__(    path=path,
                                                             app=app)
         self.extracton_func = vda.gen_df_from_log
@@ -657,39 +664,54 @@ class VortexExperimentReductionClass(DataExtractionClass):
         self.df.to_feather(self.output_dataframe_path)
 
 class VortexComparativeAnalysisClass(DataExtractionClass):
-    def __init__(self, path, app, yml_file, plot=True):
+    """
+    Class to compare data extracted from the experiment reports.
+    Mandatory to provide a yaml file with the following fields:
+    - input_dir: single or a list of directories containing the dataframes to compare.
+                 The program will look for the dataframe.feather file in the specified directory.
+                 Default: self.path
+    - output_dir: directory where to store the comparative analysis results.
+                  Default: self.path + "comparative_analysis/"
+    - group_by: list of columns (with the same value) to merge the dataframes on.
+    - compare_metric: dictionary with keys = name of the comparison metric and values = 
+        - str: lambda function to apply to the dataframe.
+        - dict: {"name": name of the function to apply to the dataframe, "args": dictionary of arguments to pass to the function}
+    """
+    def __init__(self, path, app, yml_file):
         super(VortexComparativeAnalysisClass, self).__init__(   path=path,
                                                                 app=app,
                                                                 raw_subdir="",
                                                                 yml_file=yml_file)
         assert os.path.isfile(self.yml_file), "YAML file not found!"
         yml = yaml.load(open(self.yml_file, "r"), Loader=yaml.FullLoader)
-        self.plot = plot
-
-        #making output directory
-        self.path = self.path + yml["output_dir"]
-        _ = osu.cmd("mkdir -p {}".format(self.path))
-        self.output_dataframe_path = self.path + "/dataframe.feather"
-
-        # setting up the attributes from the yaml file
-        self.common_df_cols = yml["merge_on"]
-        self.col_to_compare = yml["col_to_compare"]
-        self.value_to_compare = yml["value_to_compare"]
-        self.col_ref_value = yml["col_ref_value"]
 
         self.extracton_func = self.data_collection
         self.post_extraction_func = self.post_extraction
 
+        #Making output directory
+        if "output_dir" in yml.keys():  self.output_path = yml["output_dir"]
+        else:                           self.output_path = os.path.join(self.path,
+                                                                        "comparative_analysis/")
+        _ = osu.cmd("mkdir -p {}".format(self.output_path))
+
+        # setting up the attributes from the yaml file
+        self.group_by = yml["group_by"] if isinstance(yml["group_by"],list) else [yml["group_by"]]
+        self.compare_metric = {}
+        for k in yml["compare_metric"].keys():
+            self.compare_metric[k] = {}
+            if isinstance(yml["compare_metric"][k]['func'],str):
+                self.compare_metric[k]["func"] = eval(yml["compare_metric"][k]["func"])
+                self.compare_metric[k]["args"] = {}
+            elif isinstance(yml["compare_metric"][k],dict):
+                self.compare_metric[k]["func"] = getattr(self, yml["compare_metric"][k]["name"])
+                self.compare_metric[k]["args"] = yml["compare_metric"][k]["args"]
+
+        self.plot = yml["plot"] if "plot" in yml.keys() else False
+
+
     def data_collection(self, fpath):
-        df = pd.read_feather(fpath + "/dataframe.feather")
-        if "resnet" in fpath:
-            df["app"] = "resnet"
-        elif "gcn" in fpath:
-            df["app"] = "gcn"
-        elif df["app"].unique() == "gcnSynth":
-            df["app"] = "aggr"
-        return df
-    
+        return pd.read_feather(fpath)
+
     @staticmethod
     def get_cmp_val(cols, ref_value):
         ref_index = cols.index(ref_value)
@@ -704,7 +726,7 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
         r = p/x[cols[index]] if p>0 else p/x[cols[ref_index]]
         r *= 100
         return r
-    
+ 
     @staticmethod
     def make_comparison(x, cols, ref_value):
         ref_index = cols.index(ref_value)
@@ -716,71 +738,19 @@ class VortexComparativeAnalysisClass(DataExtractionClass):
     def gen_str_ID(x, cols):
         return "-".join([str(x[c]) for c in cols])
 
-
     def post_extraction(self):
-        dfs = []
-        #make as many dataframes as the number of values to compare
-        for lws in self.df[self.col_to_compare].unique():
-            if lws == self.col_ref_value: continue
-            dfs.append(self.df.loc[(self.df[self.col_to_compare].isin([lws,self.col_ref_value]))])
+        for k in self.compare_metric.keys():
+            dfs = pd.DataFrame({})
+            dfs = self.df.groupby(by=self.group_by).apply(self.compare_metric[k]["func"], 
+                                                             **self.compare_metric[k]["args"]).reset_index()
+            dfs.columns = self.group_by + [k]
+            print(dfs)
+            dfs.to_feather(os.path.join(self.output_path, k + ".feather"))
+            if self.plot:
+                sns.lineplot(data=dfs, x=self.group_by[0], y=k) #hue=self.group_by[1])
+                plt.savefig(os.path.join(self.output_path, k + ".svg"))
+                plt.close()
 
-        #pivot the dataframes to make the comparison (%)
-        for i in range(len(dfs)):
-            dfs[i].reset_index(inplace=True)
-            dfs[i] = dfs[i].pivot(index=self.common_df_cols, columns=self.col_to_compare, values=self.value_to_compare)
-            cols = dfs[i].columns.tolist()
-            dfs[i]["%"] = dfs[i].apply(self.make_comparison, axis=1, cols=cols, ref_value=self.col_ref_value) ##### here you can change the data analysis class
-            dfs[i][self.col_to_compare] = [self.get_cmp_val(cols, self.col_ref_value)]*len(dfs[i].index)
-
-        #merge the dataframes
-        df = pd.DataFrame({})
-        for i in range(len(dfs)):
-            dfs[i].reset_index(inplace=True) #resetting the index to have the common columns (in the index) as columns
-            df = pd.concat([df, dfs[i]], ignore_index=True)
-
-        #sorting the dataframe
-        sort_list = [""]*len(self.file_list)
-        for app in df["app"].unique():
-            for i, f in enumerate(self.file_list):
-                if app in f: sort_list[i] = app
-        df["app"] = pd.Categorical(df["app"], sort_list)
-        df.sort_values(by=["app"], inplace=True)
-
-        #saving the dataframe
-        df.reset_index(inplace=True)
-        df.columns = df.columns.map(str)
-        df.to_feather(self.output_dataframe_path)
-
-        #generating analytics
-        df["str_ID"] = df.apply(self.gen_str_ID, axis=1, cols=self.common_df_cols) #generating a string ID for each row
-        for app in df["app"].unique():
-            d = OrderedDict({})
-            res_dir = self.path + "/" + app + "/"
-            _ = osu.cmd("mkdir -p {}".format(res_dir))
-            for comp in df[self.col_to_compare].unique():
-                file_name = self.col_to_compare + "_" + str(comp)
-                cdf = df.loc[(df["app"]==app) & (df[self.col_to_compare]==comp)]
-                cdf = cdf.sort_values(by="%", ascending=True)
-                d["Max Loss"] = float(cdf["%"].min())
-                d["Avg"] = float(cdf["%"].mean())
-                d["Avg Loss"] = float(cdf.loc[(df["%"]<1)]["%"].mean())
-                d["Avg Gain"] = float(cdf.loc[(df["%"]>1)]["%"].mean())
-                d["Equal"] = len(cdf.loc[(df["%"]==1)]["%"].index)
-                d["Worse"] = len(cdf.loc[(df["%"]<1)]["%"].index)
-                d["Worst"] = dict(zip(cdf.loc[(df["%"]<0)]["str_ID"],cdf.loc[(df["%"]<0)]["%"].astype(float)))
-                yaml.dump(d, open(res_dir + file_name + ".yml", "w"))
-                try:
-                    gen_bar(cdf.loc[(df["%"]<0)], height="%", bar_names="str_ID", 
-                                path=res_dir + file_name + ".svg")
-                except:
-                    print("No negative values found for {}".format(file_name))
-
-        if self.plot:
-            #plotting
-            plot_path = self.path + "/_plots/"
-            _ = osu.cmd("mkdir -p {}".format(plot_path))
-            violin_plot(df, x="app", y="%", hue=self.col_to_compare, path=plot_path + "violin.svg", size=(20,5), split=True)
-        
 """
 Need to specify one of the possible strings below to select the correct class.
 """

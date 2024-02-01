@@ -1,4 +1,3 @@
-import os
 from toolkit.data_analysis import data_analysis as da
 from toolkit.util.parsers import extractor as parsers
 

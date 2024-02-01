@@ -1,0 +1,9 @@
+input_list:
+  - "/vx/scripts/outputs/MICRO-COMP-vecadd-limbo-prova/dataframe.feather"
+group_by: "workload_size"
+compare_metric:
+  cycles:
+    func: "lambda x: (x.loc[x['kernel'] == 'vecadd', 'cycles'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'cycles'].iloc[0]) / x.loc[x['kernel'] == 'vecadd', 'cycles'].iloc[0]"
+  instrs:
+    func: "lambda x: (x.loc[x['kernel'] == 'vecadd', 'instrs'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'instrs'].iloc[0]) / x.loc[x['kernel'] == 'vecadd', 'instrs'].iloc[0]"
+plot: True
