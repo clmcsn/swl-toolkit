@@ -1,0 +1,14 @@
+#winner: -x 33 -y 30 -z 11 
+app       : sgemm-airbender
+driver    : simx
+clusters  : 1
+threads   : 4
+warps     : 4
+cores     : 1
+l2cache   : True
+workload_size_x : "1:33:1"
+workload_size_y : "1:33:1"
+workload_size_z : "8:16:1"
+optimize : "-1"
+repeat : 1
+kernel : sgemm-limbo

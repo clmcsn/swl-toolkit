@@ -4,7 +4,7 @@ from math import log
 import numpy as np
 import functools
 import pandas as pd
-from itertools import product
+from itertools import product, chain
 import os
 import sys
 import yaml
@@ -168,11 +168,13 @@ class ExperimentManagerClass():
         self.inner_loop_dict = OrderedDict({})
         self.inner_iter = 0
         self.fixed_dict = {}
+        self.no_perms_ikeys = []
+        self.no_perms_okeys = []
         self.experiment_df = pd.DataFrame({})
         self.verbose = True
 
         #-----------------------------INIT--------------------------------
-        if (not self.check_checkpoint()):
+        if not self.check_checkpoint():
             self.make_metadata()
         else :
             print("Checkpoint found, loading from checkpoint...")
@@ -252,20 +254,20 @@ class ExperimentManagerClass():
     export_experiment: exports the experiment to a YAML file
     load_experiment: loads the experiment from a YAML file
     '''
-    
+
     def update(self, struct : Union[dict, OrderedDict]):
         '''
         Updates the experiments and rewrites the metadata.
         '''
         self.experiments = struct
         self.make_metadata()
-    
+
     def key_update(self, key, value):
         '''
         Updates a key in the experiment dictionary.
         '''
         self.experiments.update({key:value})
-    
+
     def export_experiment(self):
         '''
         Exports the experiment to a YAML file
@@ -276,7 +278,7 @@ class ExperimentManagerClass():
             print("Exporting experiment to {}".format(self.experiment_dump_path))
             with open(self.experiment_dump_path, 'w') as fout:
                 yaml.dump(self.experiments, fout)
-    
+
     def load_experiment(self):
         '''
         Loads the experiment from a YAML file
@@ -494,17 +496,26 @@ class ExperimentManagerClass():
     #-----------------------------LOOP_DICT--------------------------------
     def make_loop_dict(self):
         for k in self.experiments.keys():
+            if k=="no_perms_keys": 
+                self.no_perms_okeys.extend(self.experiments[k])
+                continue
             if type(self.experiments[k])==list:
                 self.outer_loop_dict[k] = self.experiments[k]
             elif type(self.experiments[k])==dict:
-                if (k == 'OuterParams'):
+                if k == 'OuterParams':
                     for kk in self.experiments[k].keys():
+                        if kk=="no_perms_keys":
+                            self.no_perms_okeys.extend(self.experiments[k][kk])
+                            continue
                         if type(self.experiments[k][kk])==list:
                             self.outer_loop_dict[kk] = self.experiments[k][kk]
                         else:
                             self.fixed_dict[kk] = self.experiments[k][kk]
-                elif (k == 'InnerParams'):
+                elif k == 'InnerParams':
                     for kk in self.experiments[k].keys():
+                        if kk=="no_perms_keys":
+                            self.no_perms_ikeys.extend(self.experiments[k][kk])
+                            continue
                         if type(self.experiments[k][kk])==list:
                             self.inner_loop_dict[kk] = self.experiments[k][kk]
                         else:
@@ -533,10 +544,49 @@ class ExperimentManagerClass():
     def make_df(self):
         #Makeing iter fields
         oKeys = list(self.outer_loop_dict.keys()) + list(self.fixed_dict.keys())                #keys for outer loop and fixed fields
-        steps = list(product(*self.outer_loop_dict.values(),*self.inner_loop_dict.values()))    #steps for outer and inner loop
-        keys = list(self.outer_loop_dict.keys()) + list(self.inner_loop_dict.keys())            #keys for outer and inner loop
+
+        """-------------------------------------------------------------"""
+        """The following code is very ugly/complex and should be refactored. It is used to generate the experiment_df dataframe.
+           It meant for generating, for each outer and inner loops, the permutations of parameters when required and when not.
+           Modified by: @giuseppe_sarda Date: 2024-02-02
+        """
+        #differentiating between keys that should be permuted and keys that should not
+        no_perms_oloop_dict = OrderedDict({k : self.outer_loop_dict[k] for k in self.no_perms_okeys})                            #keys for outer loop that should not be permuted
+        no_perms_iloop_dict = OrderedDict({k : self.inner_loop_dict[k] for k in self.no_perms_ikeys})                                        #keys for inner loop that should not be permuted
+        perms_oloop_dict = OrderedDict({k : self.outer_loop_dict[k] for k in self.outer_loop_dict.keys() if k not in self.no_perms_okeys})   #keys for outer loop that should be permuted
+        perms_iloop_dict = OrderedDict({k : self.inner_loop_dict[k] for k in self.inner_loop_dict.keys() if k not in self.no_perms_ikeys})   #keys for inner loop that should be permuted
+
+        perm_steps = product(*perms_oloop_dict.values(),*perms_iloop_dict.values())    #steps for outer and inner loop
+        if self.no_perms_okeys:
+            no_perm_olist_len = len(no_perms_oloop_dict[list(no_perms_oloop_dict.keys())[0]])
+            no_perm_osteps = [tuple(no_perms_oloop_dict[k][i] for k in no_perms_oloop_dict.keys()) for i in range(no_perm_olist_len)]
+        else: no_perm_osteps = []
+        if self.no_perms_ikeys:
+            no_perm_ilist_len = len(no_perms_iloop_dict[list(no_perms_iloop_dict.keys())[0]])
+            no_perm_isteps = [tuple(no_perms_iloop_dict[k][i] for k in no_perms_iloop_dict.keys()) for i in range(no_perm_ilist_len)]
+        else: no_perm_isteps = []
+
+        if not no_perm_osteps and not no_perm_isteps:
+            steps = perm_steps
+        elif not no_perm_osteps and no_perm_isteps:
+            steps = list(product(perm_steps, no_perm_isteps))
+            steps = [tuple(chain(*x)) for x in steps]                   #flatten the steps
+        elif no_perm_osteps and not no_perm_isteps:
+            steps = list(product(perm_steps, no_perm_osteps))
+            steps = [tuple(chain(*x)) for x in steps]                   #flatten the steps
+        else:
+            steps = product(perm_steps, no_perm_osteps, no_perm_isteps) #steps for outer and inner loop
+            steps = [tuple(chain(*x)) for x in steps]                   #flatten the steps
+        steps = list(steps)
+
+        keys =  list(perms_oloop_dict.keys())
+        keys += list(perms_iloop_dict.keys())
+        keys += list(no_perms_oloop_dict.keys())
+        keys += list(no_perms_iloop_dict.keys())
+        """-------------------------------------------------------------"""
+
         self.experiment_df = pd.DataFrame(steps, columns=keys)
-        
+
         #Extending fixed fields
         for k in self.fixed_dict.keys():
             self.experiment_df[k] = self.fixed_dict[k]
