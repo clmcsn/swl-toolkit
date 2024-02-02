@@ -52,4 +52,5 @@ templateDict = {
     "badd" : Map(CMD=[CondorVortexCmdTemplate, baddCmd], DICT=baddDefaults, STR=baddResFname),
     "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname),
     "vecadd-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname),
-    "sgemm-airbender" : Map(CMD=[CondorVortexCmdTemplate, sgemmAirbenderCmd], DICT=sgemmAirbenderDefaults, STR=sgemmAirbenderResFname)}
+    "sgemm-airbender" : Map(CMD=[CondorVortexCmdTemplate, sgemmAirbenderCmd], DICT=sgemmAirbenderDefaults, STR=sgemmAirbenderResFname),
+    "saxpy-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname)}
