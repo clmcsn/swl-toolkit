@@ -1,5 +1,4 @@
 - "clusters <= cores"
 - "threads >= warps"
 - "threads >= cores"
-- "workload_size_x * workload_size_y >= 16200"
-- "workload_size_x * workload_size_y <= 16550"
+- "workload_size_x >= workload_size_y"
