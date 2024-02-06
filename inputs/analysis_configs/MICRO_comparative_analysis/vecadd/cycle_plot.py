@@ -1,14 +1,17 @@
 """Tiny script to plot cycles"""
 import math
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-df_file = "/vx/scripts/outputs/MICRO-COMP-vecadd-limbo-prova/dataframe.feather"
-output_dir = "/vx/scripts/outputs/MICRO-COMP-vecadd-limbo-prova/comparative_analysis/"
+df_file = "/vx/scripts/outputs/MICRO-COMP-vecadd-base/dataframe.feather"
+output_dir = "/vx/scripts/outputs/MICRO-COMP-vecadd-base/comparative_analysis/"
+os.makedirs(output_dir, exist_ok=True)
+baseline = 'vecadd-base'
 
 df  = pd.read_feather(df_file)
-cdf = df.groupby('workload_size').apply(lambda x: (x.loc[x['kernel'] == 'vecadd', 'cycles'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'cycles'].iloc[0]) * 100 / x.loc[x['kernel'] == 'vecadd', 'cycles'].iloc[0])
+cdf = df.groupby('workload_size').apply(lambda x: (x.loc[x['kernel'] == baseline, 'cycles'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'cycles'].iloc[0]) * 100 / x.loc[x['kernel'] == baseline, 'cycles'].iloc[0])
 cdf = cdf.reset_index()
 cdf.columns = ['workload_size', 'cycles']
 ndf = df.groupby('workload_size').apply(
@@ -33,7 +36,7 @@ plt.savefig(output_dir + 'cycles.svg')
 plt.clf()
 
 # Making instrs plot
-cdf = df.groupby('workload_size').apply(lambda x: (x.loc[x['kernel'] == 'vecadd', 'instrs'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'instrs'].iloc[0]) * 100 / x.loc[x['kernel'] == 'vecadd', 'instrs'].iloc[0])
+cdf = df.groupby('workload_size').apply(lambda x: (x.loc[x['kernel'] == baseline, 'instrs'].iloc[0] - x.loc[x['kernel'] == 'vecadd-limbo', 'instrs'].iloc[0]) * 100 / x.loc[x['kernel'] == baseline, 'instrs'].iloc[0])
 cdf = cdf.reset_index()
 cdf.columns = ['workload_size', 'instrs']
 cdf['folding'] = ((cdf['workload_size'].astype(int) + 1) / 16).astype(int)

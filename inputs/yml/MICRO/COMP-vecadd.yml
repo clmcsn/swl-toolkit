@@ -19,4 +19,4 @@ optimize : "-1"
 repeat : 1000
 kernel : 
   - vecadd-limbo
-  - vecadd
+  - vecadd-base
