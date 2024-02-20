@@ -1,5 +1,4 @@
 from collections import namedtuple
-
 CondorVortexCmdTemplate = "condor_send  --type command \
                                         --jobname {app}.{oID} \
                                         --nice 1 \
@@ -37,7 +36,9 @@ from inputs.templates.vecadd_airbender import vecaddAirbenderCmd, vecaddAirbende
 # sgemm-limbo ---------------------------------------------------------------------
 from inputs.templates.sgemm_airbender import sgemmAirbenderCmd, sgemmAirbenderDefaults, sgemmAirbenderResFname
 # ----------------------------------------------------------------------------
-
+# aggr-limbo ---------------------------------------------------------------------
+from inputs.templates.aggr_airbender import aggrAirbenderCmd, aggrAirbenderDefaults, aggrAirbenderResFname
+# ----------------------------------------------------------------------------
 
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
@@ -53,4 +54,5 @@ templateDict = {
     "nearn" : Map(CMD=[CondorVortexCmdTemplate, nearnCmd], DICT=nearnDefaults, STR=nearnResFname),
     "vecadd-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname),
     "sgemm-airbender" : Map(CMD=[CondorVortexCmdTemplate, sgemmAirbenderCmd], DICT=sgemmAirbenderDefaults, STR=sgemmAirbenderResFname),
-    "saxpy-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname)}
+    "saxpy-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname),
+    "aggr-airbender" : Map(CMD=[CondorVortexCmdTemplate, aggrAirbenderCmd], DICT=aggrAirbenderDefaults, STR=aggrAirbenderResFname)}

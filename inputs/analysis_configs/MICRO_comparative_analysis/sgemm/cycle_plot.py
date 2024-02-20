@@ -3,9 +3,11 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
-df_file = "/vx/scripts/outputs/MICRO-COMP-sgemm/dataframe.feather"
-output_dir = "/vx/scripts/outputs/MICRO-COMP-sgemm/comparative_analysis/"
+df_file = "./outputs/MICRO-COMP-sgemm-llvm/dataframe.feather"
+output_dir = "./outputs/MICRO-COMP-sgemm-llvm/comparative_analysis/"
+os.makedirs(output_dir, exist_ok=True)
 
 df  = pd.read_feather(df_file)
 df['workload_size'] = df.apply(lambda x: int(x['workload_size_x']) * int(x['workload_size_y']), axis=1)

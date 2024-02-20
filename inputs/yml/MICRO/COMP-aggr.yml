@@ -1,0 +1,18 @@
+app       : aggr-airbender
+driver    : simx
+clusters  : 1
+threads   : 4
+warps     : 4
+cores     : 1
+l2cache   : True
+l3cache   : True
+dataset   : 
+  - cora
+  - citeseer
+  - pubmed
+vlen : 14
+repeat : 50
+kernel:
+  - aggr-el-limbo
+  - aggr-el-base
+optimize : "-1"

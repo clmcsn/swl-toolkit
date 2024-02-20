@@ -23,15 +23,7 @@ workload_size_y :
   - 63
   - 92
   - 126
-workload_size_z :
-  - 16
-  - 9
-  - 13
-  - 11
-  - 8
-  - 11
-  - 15
-  - 14
+workload_size_z : 14
 optimize : "-1"
 repeat : 100
 kernel : 
@@ -40,4 +32,3 @@ kernel :
 no_perms_keys :
   - workload_size_x
   - workload_size_y
-  - workload_size_z
