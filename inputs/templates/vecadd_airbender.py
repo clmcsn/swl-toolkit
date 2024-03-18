@@ -1,17 +1,16 @@
 "Template for vecadd airbender"
 
-from inputs.templates.vortex import VortexCmdTemplate, VortexDefaults, VortexResultFname
+from inputs.templates.airbender import AirbenderCmdTemplate, AirbenderDefaults, AirbenderResultFname
 
-vecaddAirbenderCmd = dict(VortexCmdTemplate)
+vecaddAirbenderCmd = dict(AirbenderCmdTemplate)
 vecaddAirbenderCmd.update({
-    "app"               : '--app={app} --perf',
     "workload_size" : '--args="-n {workload_size} ',
     "optimize" : '-O {optimize} ',
     "repeat" : '-r {repeat} ',
     "kernel" : '-k {kernel}"'
 })
 
-vecaddAirbenderDefaults = dict(VortexDefaults)
+vecaddAirbenderDefaults = dict(AirbenderDefaults)
 vecaddAirbenderDefaults.update({
     "workload_size" : "256",
     "repeat" : "1",
@@ -19,7 +18,7 @@ vecaddAirbenderDefaults.update({
     "kernel" : "vecadd"
 })
 
-vecaddAirbenderResFname = dict(VortexResultFname)
+vecaddAirbenderResFname = dict(AirbenderResultFname)
 vecaddAirbenderResFname.update({
     "workload_size" : 'n{workload_size}',
     "optimize" : 'O{optimize}',

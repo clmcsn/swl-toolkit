@@ -1,7 +1,7 @@
 VortexCmdTemplate = {
     "launcher"          : '{launcher}',
     "driver"            : '--driver={driver}',
-    "app"               : '--app={app} --perf --runtime',
+    "app"               : '--app={app} --perf',
     "debug"             : "--debug",
     "clusters"          : '--clusters={clusters}',
     "cores"             : '--cores={cores}',
