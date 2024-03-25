@@ -46,6 +46,8 @@ class StreamParsingClass(object):
 
         # other attributes
         self.stderr_log_file = self.output_path + "process.stderr.log"
+        self.log_file = self.output_path + "process.log"
+        self.save_to_file = True
         self.CMD_TEMPLATE = ""
         self.command = ""
 
@@ -82,11 +84,26 @@ class StreamParsingClass(object):
         self.command = self.CMD_TEMPLATE.format(**self.cmd_arg_dict)
 
     def run_command(self):
+        if self.save_to_file:
+            self.dump_file = open(self.log_file, "w")
         self.make_command()
         self.print_command()
-        self.process = sp.Popen(    shlex.split(self.command),
+        """ Quick and dirty hack to handle environment variables in the command."""
+        self.command = shlex.split(self.command)
+        self.env = os.environ.copy()
+        for i in range(len(self.command)):
+            if 'CONFIGS=' in self.command[i]:
+                env_var = self.command[i].split('=',1)
+                self.env[env_var[0]] = env_var[1]
+                self.command.remove(self.command[i])
+            else:
+                break
+        """---------------------------------------------------------------------"""
+        print(self.env)
+        self.process = sp.Popen(    self.command,
                                     stdout=sp.PIPE,
                                     stderr=sp.PIPE,
+                                    env=self.env,
                                     text=True,
                                     universal_newlines=True)
         
@@ -108,6 +125,7 @@ class StreamParsingClass(object):
     def parse(self):
         self.set_timer()
         for line in self.process.stdout:
+            if self.save_to_file: self.dump_file.write(line)
             self.reset_timer()
             self.parse_line(line)
     
@@ -214,13 +232,13 @@ class VortexTraceAnalysisClass(StreamParsingClass):
         self.output_file = output_file + ".feather"
         super().__init__(os.path.dirname(self.output_file), timeout)
         if args:
-            args['debug'] = True # add debug flag!
+            args['debug'] = 3 # add debug flag!
             self.cmd_arg_dict.update(args)
             self.experiment = exs.ExperimentClass(struct= self.cmd_arg_dict, res_path=self.output_path)
         # reduce args here
         elif exp is not None:
             self.experiment = exp
-            self.experiment.update_key("debug", True)
+            self.experiment.update_key("debug", 3)
         else:
             raise ValueError("Either args or exp must be provided.")
         self.exceptions_list = [self.is_not_trace]

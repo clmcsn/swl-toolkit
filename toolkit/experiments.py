@@ -533,6 +533,7 @@ class ExperimentManagerClass():
                 print("WARNING: Constraint file {} does not exist!".format(f))
                 continue
             constraint_list = yaml.load(open(f, 'r'), Loader=yaml.FullLoader)
+            print("Initial length of experiment_df: {}".format(len(self.experiment_df)))
             for c in constraint_list:
                 try :   
                     self.experiment_df = self.experiment_df.query(c)

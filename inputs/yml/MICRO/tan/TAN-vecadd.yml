@@ -9,12 +9,7 @@ ssr_credits   : 16
 dcache_banks  : 32
 dcache_size   : 131072
 l2cache       : True
-workload_size : "192:16447:319"
+workload_size : 1088
 optimize      : "-1"
-repeat        : 500
-kernel :
-  - vecadd-ssr3
-  - vecadd-ssr2
-  - vecadd-ssr
-  - vecadd-limbo
-  - vecadd-base
+repeat        : 3
+kernel : vecadd-ssr3

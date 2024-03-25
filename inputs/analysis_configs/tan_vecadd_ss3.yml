@@ -1,0 +1,12 @@
+synth_pivot : "func"
+kernel_key: "kernel"
+dotdump_path : 
+  vecadd-ssr3: "../tests/airbender/vecadd/dump/vecadd-ssr3.dump"
+code_sections_path : ""
+plot : "complete"
+overhead_key : "kernel"
+zoomed_plot_keys : 
+  - "vecadd"
+  - "kernel"
+sections_to_drop : []
+roofline_tag : ""
