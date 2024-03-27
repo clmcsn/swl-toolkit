@@ -5,8 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-df_file = "./scripts/outputs/MICRO-COMP-vecadd-ssr/dataframe.feather"
-output_dir = "./scripts/outputs/MICRO-COMP-vecadd-ssr/comparative_analysis/"
+df_file = "./scripts/outputs/MICRO-COMP-vecadd-complete/dataframe.feather"
+output_dir = "./scripts/outputs/MICRO-COMP-vecadd-complete/comparative_analysis/"
 os.makedirs(output_dir, exist_ok=True)
 #baseline = 'vecadd-ssr'
 
@@ -49,5 +49,29 @@ sns.lineplot(x='workload_size', y='dcache_bank_stalls', hue='kernel', data=df)
 #add grid
 plt.grid()
 plt.savefig(output_dir + 'dcache_bank_stalls.svg')
+
+plt.clf()
+
+df['cycle_ratio'] = 1
+#plot cycle ratio vecadd-base/others
+for ws in df['workload_size'].unique():
+    vecadd_base_cycles = df[(df['kernel'] == 'vecadd-base') & (df['workload_size'] == ws)]['cycles'].values[0]
+    df.loc[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws), 'cycle_ratio'] = vecadd_base_cycles / df[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws)]['cycles'] 
+sns.lineplot(x='workload_size', y='cycle_ratio', hue='kernel', data=df)
+#add grid
+plt.grid()
+plt.savefig(output_dir + 'cycle_ratio.svg')
+
+plt.clf()
+
+#plot instrs ratio
+df['instr_ratio'] = 1
+for ws in df['workload_size'].unique():
+    vecadd_base_instrs = df[(df['kernel'] == 'vecadd-base') & (df['workload_size'] == ws)]['instrs'].values[0]
+    df.loc[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws), 'instr_ratio'] =  vecadd_base_instrs / df[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws)]['instrs']
+sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', data=df)
+#add grid
+plt.grid()
+plt.savefig(output_dir + 'instr_ratio.svg')
 
 plt.clf()
