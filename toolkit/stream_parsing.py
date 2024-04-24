@@ -99,7 +99,6 @@ class StreamParsingClass(object):
             else:
                 break
         """---------------------------------------------------------------------"""
-        print(self.env)
         self.process = sp.Popen(    self.command,
                                     stdout=sp.PIPE,
                                     stderr=sp.PIPE,
@@ -335,9 +334,6 @@ class VortexTraceAnalysisClass(StreamParsingClass):
         return ret
 
 class DotDumpRISCVParsingClass(StreamParsingClass):
-    """
-    TODO we should extend the possibility to tag instructions with the function name (and not only the PC)
-    """
     def __init__(self, output_path: str, timeout: int = 0,
                     args: dict = {}, dump_file : str = ""):
         super().__init__(output_path, timeout)
@@ -420,3 +416,96 @@ class DotDumpRISCVParsingClass(StreamParsingClass):
             return self.df
         else:
             raise ValueError("Error while parsing the dump file.")
+
+class AreaRptParsingClass(StreamParsingClass):
+    def __init__(self, output_path: str, timeout: int = 0,
+                    args: dict = {}, rpt_file : str = "", depth : int = 0):
+        super().__init__(output_path, timeout)
+        self.output_file = self.output_path + os.path.basename(rpt_file) + ".feather"
+        if args: self.cmd_arg_dict.update(args)
+        self.CMD_TEMPLATE = "cat {rpt_file}"
+        self.exceptions_list = [self.is_out_of_area_section, self.is_too_low_hierarchy]
+        self.reduce_func = self.get_area_stats
+        
+        # ad-hoc attributes
+        if rpt_file == "": raise ValueError("RPT file not specified.")
+        self.rpt_file = rpt_file
+        self.depth = depth
+        self.cmd_arg_dict["rpt_file"] = self.rpt_file
+        self.cmd_arg_dict["depth"] = self.depth
+        self.in_area_section = False
+        self.iter_depth = -1
+        self.iter_parent_name = []
+        self.df = pd.DataFrame({})
+        self.leaf_df = pd.DataFrame({})
+        self.iter_dict = {}
+        self.iter_dict_prev = {"depth" : -1}
+
+
+    def is_out_of_area_section(self, line):
+        if self.in_area_section:
+            return False
+        else:
+            if line.startswith("-------"):
+                self.in_area_section = True
+                return True
+            else:
+                return True
+    def is_too_low_hierarchy(self, line):
+        if self.in_area_section:
+            if self.depth == -1: return False
+            left_spaces = len(line) - len(line.lstrip(' '))
+            depth = left_spaces // 2
+            if depth > self.depth:
+                return True
+        return False
+
+    def get_area_stats(self, line):
+        depth = (len(line) - len(line.lstrip(' '))) // 2
+        lline = line.strip().split()
+        if len(lline) == 6:
+            self.iter_dict["instance"]      = lline[0]
+            self.iter_dict["module"]        = lline[1]
+            self.iter_dict["parent"]        = self.iter_parent_name[depth-1]
+            self.iter_dict["cell_count"]    = int(lline[2])
+            self.iter_dict["cell_area"]     = float(lline[3])
+            self.iter_dict["net_area"]      = float(lline[4])
+            self.iter_dict["total_area"]    = float(lline[5])
+            self.iter_dict["depth"]         = depth
+        elif len(lline) == 5:
+            self.iter_dict["instance"]      = lline[0]
+            self.iter_dict["module"]        = lline[0]
+            self.iter_dict["parent"]        = lline[0]
+            self.iter_dict["cell_count"]    = int(lline[1])
+            self.iter_dict["cell_area"]     = float(lline[2])
+            self.iter_dict["net_area"]      = float(lline[3])
+            self.iter_dict["total_area"]    = float(lline[4])
+            self.iter_dict["depth"]         = depth
+        self.df = pd.concat([self.df, pd.DataFrame(self.iter_dict, index=[0])], ignore_index=True)
+        self.make_leaf_df()
+        if depth > self.iter_depth:
+            self.iter_parent_name.append(self.iter_dict["instance"])
+            self.iter_depth += 1
+        elif depth < self.iter_depth:
+            for i in range(self.iter_depth - depth):
+                self.iter_parent_name.pop()
+            self.iter_parent_name[-1] = self.iter_dict["instance"]
+            self.iter_depth = depth
+        else:
+            self.iter_parent_name[-1] = self.iter_dict["instance"]
+    
+    def make_leaf_df(self):
+        if self.iter_dict["depth"] <= self.iter_dict_prev["depth"]:
+            for i in range(len(self.iter_parent_name)):
+                self.iter_dict_prev["depth_{}".format(i)] = self.iter_parent_name[i]
+            self.leaf_df = pd.concat([self.leaf_df, pd.DataFrame(self.iter_dict_prev, index=[0])], ignore_index=True)
+        self.iter_dict_prev = self.iter_dict.copy()
+
+
+    def run(self):
+        ret = super().run()
+        if ret == 0:
+            self.df.to_feather(self.output_file)
+            self.leaf_df.to_feather(self.output_file.replace(".feather", "_leaf.feather"))
+            self.leaf_df.to_csv(self.output_file.replace(".feather", "_leaf.csv"))
+        return ret
