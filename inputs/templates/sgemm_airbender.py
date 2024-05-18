@@ -1,8 +1,8 @@
 "Template for sgemm airbender"
 
-from inputs.templates.vortex import VortexCmdTemplate, VortexDefaults, VortexResultFname
+from inputs.templates.airbender import AirbenderCmdTemplate, AirbenderDefaults, AirbenderResultFname
 
-sgemmAirbenderCmd = dict(VortexCmdTemplate)
+sgemmAirbenderCmd = dict(AirbenderCmdTemplate)
 sgemmAirbenderCmd.update({
     "app"               : '--app={app} --perf',
     "optimize" : '--args="-O {optimize} ',
@@ -13,7 +13,7 @@ sgemmAirbenderCmd.update({
     "kernel" : '-k {kernel}"'
 })
 
-sgemmAirbenderDefaults = dict(VortexDefaults)
+sgemmAirbenderDefaults = dict(AirbenderDefaults)
 sgemmAirbenderDefaults.update({
     "workload_size_x" : "8",
     "workload_size_y" : "8",
@@ -23,7 +23,7 @@ sgemmAirbenderDefaults.update({
     "kernel" : "sgemm"
 })
 
-sgemmAirbenderResFname = dict(VortexResultFname)
+sgemmAirbenderResFname = dict(AirbenderResultFname)
 sgemmAirbenderResFname.update({
     "workload_size_x" : 'x{workload_size_x}',
     "workload_size_y" : 'y{workload_size_y}',

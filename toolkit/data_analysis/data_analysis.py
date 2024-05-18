@@ -182,7 +182,10 @@ class VortexPerfExtractionClass(DataExtractionClass):
         e.g., if one experiment had problems, marks it as faulty and needs to be repeated.
         """
         experiments_df = pd.read_feather(self.checkpoint_path)
+        #Make bad_df with null values
         bad_df = self.df[self.df.isnull().any(axis=1)]
+        #Extend bad_df with cycles < 0
+        bad_df = pd.concat([bad_df, self.df[self.df["cycles"]<0]])
         if bad_df.empty:  print("No faulty experiments found!"); return
         
         #Handle faulty experiments

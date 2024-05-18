@@ -1,0 +1,20 @@
+app           : vecadd-airbender
+driver        : simx
+clusters      : 1
+threads       : 16
+warps         : 8
+cores         : 4
+dcache_ports  : 3
+ssr_credits   : 16
+#dcache_banks  : 32
+dcache_size   : 131072
+l2cache       : True
+workload_size : "1024:16447:319"
+optimize      : "-1"
+repeat        : 500
+kernel :
+  - vecadd-ssr3
+  - vecadd-ssr2
+  - vecadd-ssr
+  - vecadd-limbo
+  - vecadd-base
