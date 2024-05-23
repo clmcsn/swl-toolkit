@@ -5,8 +5,8 @@ from collections import OrderedDict
 
 AirbenderCmdTemplate = OrderedDict({
     "ssr_credits"       : 'CONFIGS="-DNUM_SSR_CREDITS={ssr_credits}',
-    "dcache_size"       : '-DDCACHE_SIZE={dcache_size}"',
-    "dcache_banks"      : '-DDCACHE_NUM_BANKS={dcache_banks}'
+    "dcache_size"       : '-DDCACHE_SIZE={dcache_size}',
+    "dcache_banks"      : '-DDCACHE_NUM_BANKS={dcache_banks}"'
 })
 AirbenderCmdTemplate.update(VortexCmdTemplate)
 AirbenderCmdTemplate.update({

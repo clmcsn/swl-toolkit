@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-res_root = "./scripts/outputs/MICRO-COMP-vecadd-realmem-mhws/"
+res_root = "./scripts/outputs/MICRO-COMP-vecadd-idealmem-mhws2/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 os.makedirs(output_dir, exist_ok=True)
@@ -17,7 +17,7 @@ sns.lineplot(x='workload_size', y='cycles', hue='kernel', data=df)
 #add grid
 plt.grid()
 #fix y axis
-plt.ylim(0, 10000000)
+#plt.ylim(0, 10000000)
 plt.savefig(output_dir + 'cycles.svg')
 
 plt.clf()
@@ -64,7 +64,7 @@ sns.lineplot(x='workload_size', y='cycle_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()
 #fix y axis
-plt.ylim(0, 50)
+#plt.ylim(0, 50)
 plt.savefig(output_dir + 'cycle_ratio.svg')
 
 plt.clf()
