@@ -5,13 +5,15 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-res_root = "./scripts/outputs/MICRO-COMP-vecadd-idealmem-mhws2/"
+res_root = "./scripts/outputs/ASPLOS-COMP-vecadd-im-1C2c4w8t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 os.makedirs(output_dir, exist_ok=True)
 #baseline = 'vecadd-ssr'
 
 df  = pd.read_feather(df_file)
+#substitute cycles < 0 with 0
+df.loc[df['cycles'] < 0, 'cycles'] = 0
 #plot cycles, y axis is cycles, x axis is workload_size, and we have a line for each kernel
 sns.lineplot(x='workload_size', y='cycles', hue='kernel', data=df)
 #add grid
