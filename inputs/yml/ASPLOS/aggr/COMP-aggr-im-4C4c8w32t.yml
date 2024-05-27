@@ -1,6 +1,6 @@
 app           : aggr-airbender
 driver        : simx
-clusters      : 1
+clusters      : 4
 threads       : 32
 warps         : 8
 cores         : 4

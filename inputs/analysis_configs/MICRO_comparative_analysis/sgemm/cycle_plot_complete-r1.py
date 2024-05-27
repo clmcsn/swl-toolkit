@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C1c4w4t/"
+#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C4c8w16t/"
+#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-4C4c8w32t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 baseline = 'sgemm'
@@ -75,7 +77,7 @@ for ws in df['workload_size'].unique():
 sns.lineplot(x='workload_size', y='cycle_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()
-plt.ylim(0, 50)
+#plt.ylim(0, 50)
 plt.savefig(output_dir + 'cycle_ratio.svg')
 
 plt.clf()
