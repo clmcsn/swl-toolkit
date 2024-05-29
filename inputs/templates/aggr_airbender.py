@@ -1,8 +1,8 @@
 "Template for aggr airbender"
 
-from inputs.templates.vortex import VortexCmdTemplate, VortexDefaults, VortexResultFname
+from inputs.templates.airbender import AirbenderCmdTemplate, AirbenderDefaults, AirbenderResultFname
 
-aggrAirbenderCmd = dict(VortexCmdTemplate)
+aggrAirbenderCmd = dict(AirbenderCmdTemplate)
 aggrAirbenderCmd.update({
     "app"               : '--app={app} --perf',
     "nodes" : '--args="-n {nodes} ',
@@ -13,7 +13,7 @@ aggrAirbenderCmd.update({
     "kernel" : '-k {kernel}"'
 })
 
-aggrAirbenderDefaults = dict(VortexDefaults)
+aggrAirbenderDefaults = dict(AirbenderDefaults)
 aggrAirbenderDefaults.update({
     "nodes" : "64",
     "vlen" : "4",
@@ -23,7 +23,7 @@ aggrAirbenderDefaults.update({
     "kernel" : "aggr"
 })
 
-aggrAirbenderResFname = dict(VortexResultFname)
+aggrAirbenderResFname = dict(AirbenderResultFname)
 aggrAirbenderResFname.update({
     "nodes" : 'n{nodes}',
     "vlen" : 'v{vlen}',

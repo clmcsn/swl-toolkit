@@ -5,35 +5,32 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C2c4w8t_2/"
-res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C1c4w4t/"
-#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C2c4w8t/"
-#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C4c8w16t/"
-#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-4C4c8w32t/"
+res_root = "./scripts/outputs/ASPLOS-COMP-saxpy-im-1C2c4w8t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
-baseline = 'sgemm'
 os.makedirs(output_dir, exist_ok=True)
-#baseline = 'vecadd-ssr'
+#baseline = 'saxpy-ssr'
 
 df  = pd.read_feather(df_file)
 df_repeat1 = df[df['repeat'] == 1].reset_index(drop=True)
 df_repeat2 = df[df['repeat'] == 2].reset_index(drop=True)
 
 # merge the two dataframes makeing the subtract of the cycles
-df = pd.merge(df_repeat1, df_repeat2, on=['workload_size_x', 'workload_size_y', 'kernel'], suffixes=('_r1', '_r2'))
+df = pd.merge(df_repeat1, df_repeat2, on=['workload_size', 'kernel'], suffixes=('_r1', '_r2'))
 df['cycles'] = df['cycles_r2'] - df['cycles_r1']
 df['instrs'] = df['instrs_r2'] - df['instrs_r1']
 df['dcache_bank_utilization'] = df['dcache_bank_utilization_r2']
 df['dcache_bank_stalls'] = df['dcache_bank_stalls_r2'] - df['dcache_bank_stalls_r1']
 
-#workload size as workload_size_x*workload_size_y
-df['workload_size'] = df['workload_size_x'] * df['workload_size_y']
+
+#substitute cycles < 0 with 0
+df.loc[df['cycles'] < 0, 'cycles'] = 0
 #plot cycles, y axis is cycles, x axis is workload_size, and we have a line for each kernel
 sns.lineplot(x='workload_size', y='cycles', hue='kernel', data=df)
 #add grid
 plt.grid()
-#plt.ylim(0, 20000000)
+#fix y axis
+#plt.ylim(0, 10000000)
 plt.savefig(output_dir + 'cycles.svg')
 
 plt.clf()
@@ -72,14 +69,15 @@ plt.savefig(output_dir + 'dcache_bank_stalls.svg')
 plt.clf()
 
 df['cycle_ratio'] = 1
-#plot cycle ratio vecadd-base/others
+#plot cycle ratio saxpy/others
 for ws in df['workload_size'].unique():
-    vecadd_base_cycles = df[(df['kernel'] == baseline) & (df['workload_size'] == ws)]['cycles'].values[0]
-    df.loc[(df['kernel'] != baseline) & (df['workload_size'] == ws), 'cycle_ratio'] = vecadd_base_cycles / df[(df['kernel'] != baseline) & (df['workload_size'] == ws)]['cycles'] 
+    saxpy_base_cycles = df[(df['kernel'] == 'saxpy') & (df['workload_size'] == ws)]['cycles'].values[0]
+    df.loc[(df['kernel'] != 'saxpy') & (df['workload_size'] == ws), 'cycle_ratio'] = saxpy_base_cycles / df[(df['kernel'] != 'saxpy') & (df['workload_size'] == ws)]['cycles'] 
 sns.lineplot(x='workload_size', y='cycle_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()
-#plt.ylim(0, 50)
+#fix y axis
+plt.ylim(0, 20)
 plt.savefig(output_dir + 'cycle_ratio.svg')
 
 plt.clf()
@@ -87,8 +85,8 @@ plt.clf()
 #plot instrs ratio
 df['instr_ratio'] = 1
 for ws in df['workload_size'].unique():
-    vecadd_base_instrs = df[(df['kernel'] == baseline) & (df['workload_size'] == ws)]['instrs'].values[0]
-    df.loc[(df['kernel'] != baseline) & (df['workload_size'] == ws), 'instr_ratio'] =  vecadd_base_instrs / df[(df['kernel'] != baseline) & (df['workload_size'] == ws)]['instrs']
+    saxpy_base_instrs = df[(df['kernel'] == 'saxpy') & (df['workload_size'] == ws)]['instrs'].values[0]
+    df.loc[(df['kernel'] != 'saxpy') & (df['workload_size'] == ws), 'instr_ratio'] =  saxpy_base_instrs / df[(df['kernel'] != 'saxpy') & (df['workload_size'] == ws)]['instrs']
 sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()

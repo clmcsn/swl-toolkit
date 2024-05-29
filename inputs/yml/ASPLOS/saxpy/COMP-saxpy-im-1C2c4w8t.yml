@@ -1,4 +1,4 @@
-app           : aggr-airbender
+app           : saxpy-airbender
 driver        : simx
 clusters      : 1
 threads       : 8
@@ -12,15 +12,14 @@ dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-vlen : "2:20:3"
-dataset   : 
-  - cora
-  - citeseer
-  - pubmed
-optimize      : 0
+workload_size : "256:10000:100"
+optimize      : "-1"
 repeat        : 
   - 1
   - 2
 kernel :
-  - aggr-el-limbo
-  - aggr-el-base
+  - saxpy-ssr3
+  - saxpy-ssr2
+  - saxpy-ssr
+  - saxpy-loop
+  - saxpy

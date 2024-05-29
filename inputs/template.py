@@ -30,16 +30,18 @@ from inputs.templates.nearn import nearnCmd, nearnDefaults, nearnResFname
 # badd ---------------------------------------------------------------------
 from inputs.templates.badd import baddCmd, baddDefaults, baddResFname
 # ----------------------------------------------------------------------------
-# vecadd-limbo ---------------------------------------------------------------------
+# vecadd-swift ---------------------------------------------------------------------
 from inputs.templates.vecadd_airbender import vecaddAirbenderCmd, vecaddAirbenderDefaults, vecaddAirbenderResFname
 # ----------------------------------------------------------------------------
-# sgemm-limbo ---------------------------------------------------------------------
+# sgemm-swift ---------------------------------------------------------------------
 from inputs.templates.sgemm_airbender import sgemmAirbenderCmd, sgemmAirbenderDefaults, sgemmAirbenderResFname
 # ----------------------------------------------------------------------------
-# aggr-limbo ---------------------------------------------------------------------
+# aggr-swift ---------------------------------------------------------------------
 from inputs.templates.aggr_airbender import aggrAirbenderCmd, aggrAirbenderDefaults, aggrAirbenderResFname
 # ----------------------------------------------------------------------------
-
+# saxpy-swift ---------------------------------------------------------------------
+from inputs.templates.saxpy_airbender import saxpyAirbenderCmd, saxpyAirbenderDefaults, saxpyAirbenderResFname
+# ----------------------------------------------------------------------------
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {

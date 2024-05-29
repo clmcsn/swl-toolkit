@@ -11,8 +11,8 @@ ssr_credits   : 16
 dcache_banks  : 1024
 dcache_size   : 4194304 #4MB
 ##########################################################
-workload_size_x : 16
-workload_size_y : "4:160:2"
+workload_size_x : 8
+workload_size_y : "8:100:4"
 workload_size_z : 16
 optimize : 1
 repeat : 
