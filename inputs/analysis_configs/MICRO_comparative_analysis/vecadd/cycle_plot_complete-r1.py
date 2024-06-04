@@ -5,11 +5,12 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-res_root = "./scripts/outputs/ASPLOS-COMP-vecadd-im-1C1c4w4t/"
+res_root = "./scripts/outputs/ASPLOS-COMP-vecadd-im-1C2c4w8t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 os.makedirs(output_dir, exist_ok=True)
-#baseline = 'vecadd-ssr'
+cm = 1/2.54  # centimeters in inches
+scale = 5
 
 df  = pd.read_feather(df_file)
 df_repeat1 = df[df['repeat'] == 1].reset_index(drop=True)
@@ -36,6 +37,7 @@ plt.savefig(output_dir + 'cycles.svg')
 plt.clf()
 
 #plot instrs, y axis is instrs, x axis is workload_size, and we have a line for each kernel
+plt.subplots(figsize=(8.45/3*cm*scale, 8.45/2.2*cm*scale))
 sns.lineplot(x='workload_size', y='instrs', hue='kernel', data=df)
 #add grid
 plt.grid()
@@ -87,6 +89,7 @@ df['instr_ratio'] = 1
 for ws in df['workload_size'].unique():
     vecadd_base_instrs = df[(df['kernel'] == 'vecadd-base') & (df['workload_size'] == ws)]['instrs'].values[0]
     df.loc[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws), 'instr_ratio'] =  vecadd_base_instrs / df[(df['kernel'] != 'vecadd-base') & (df['workload_size'] == ws)]['instrs']
+plt.subplots(figsize=(8.45/3*cm*scale, 8.45/2.2*cm*scale))
 sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()

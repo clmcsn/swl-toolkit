@@ -6,14 +6,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C2c4w8t_2/"
-res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C1c4w4t/"
-#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C2c4w8t/"
+#res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C1c4w4t/"
+res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C2c4w8t/"
 #res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-1C4c8w16t/"
 #res_root = "./scripts/outputs/ASPLOS-COMP-sgemm-im-4C4c8w32t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 baseline = 'sgemm'
 os.makedirs(output_dir, exist_ok=True)
+cm = 1/2.54  # centimeters in inches
+scale = 5
 #baseline = 'vecadd-ssr'
 
 df  = pd.read_feather(df_file)
@@ -39,6 +41,7 @@ plt.savefig(output_dir + 'cycles.svg')
 plt.clf()
 
 #plot instrs, y axis is instrs, x axis is workload_size, and we have a line for each kernel
+plt.subplots(figsize=(8.45/3*cm*scale, 8.45/2.2*cm*scale))
 sns.lineplot(x='workload_size', y='instrs', hue='kernel', data=df)
 #add grid
 plt.grid()
@@ -89,6 +92,7 @@ df['instr_ratio'] = 1
 for ws in df['workload_size'].unique():
     vecadd_base_instrs = df[(df['kernel'] == baseline) & (df['workload_size'] == ws)]['instrs'].values[0]
     df.loc[(df['kernel'] != baseline) & (df['workload_size'] == ws), 'instr_ratio'] =  vecadd_base_instrs / df[(df['kernel'] != baseline) & (df['workload_size'] == ws)]['instrs']
+plt.subplots(figsize=(8.45/3*cm*scale, 8.45/2.2*cm*scale))
 sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', data=df)
 #add grid
 plt.grid()
