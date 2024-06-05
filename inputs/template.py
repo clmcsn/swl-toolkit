@@ -42,6 +42,9 @@ from inputs.templates.aggr_airbender import aggrAirbenderCmd, aggrAirbenderDefau
 # saxpy-swift ---------------------------------------------------------------------
 from inputs.templates.saxpy_airbender import saxpyAirbenderCmd, saxpyAirbenderDefaults, saxpyAirbenderResFname
 # ----------------------------------------------------------------------------
+# knn-swift ---------------------------------------------------------------------
+from inputs.templates.knn_airbender import knnAirbenderCmd, knnAirbenderDefaults, knnAirbenderResFname
+# ----------------------------------------------------------------------------
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
@@ -57,4 +60,5 @@ templateDict = {
     "vecadd-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname),
     "sgemm-airbender" : Map(CMD=[CondorVortexCmdTemplate, sgemmAirbenderCmd], DICT=sgemmAirbenderDefaults, STR=sgemmAirbenderResFname),
     "saxpy-airbender" : Map(CMD=[CondorVortexCmdTemplate, vecaddAirbenderCmd], DICT=vecaddAirbenderDefaults, STR=vecaddAirbenderResFname),
+    "knn-airbender" : Map(CMD=[CondorVortexCmdTemplate, knnAirbenderCmd], DICT=knnAirbenderDefaults, STR=knnAirbenderResFname),
     "aggr-airbender" : Map(CMD=[CondorVortexCmdTemplate, aggrAirbenderCmd], DICT=aggrAirbenderDefaults, STR=aggrAirbenderResFname)}

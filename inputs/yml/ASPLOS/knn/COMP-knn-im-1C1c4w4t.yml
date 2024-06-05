@@ -1,4 +1,4 @@
-app           : aggr-airbender
+app           : knn-airbender
 driver        : simx
 clusters      : 1
 threads       : 4
@@ -12,15 +12,14 @@ dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-vlen : "1:10:1"
-dataset   : 
-  - cora
-  - citeseer
-  - pubmed
-optimize      : 0
+workload_size : "64:1600:25"
+optimize      : "-1"
 repeat        : 
   - 1
   - 2
 kernel :
-  - aggr-el-limbo
-  - aggr-el-base
+  - knn-ssr3
+  - knn-ssr2
+  - knn-ssr
+  - knn-loop
+  - knn-asm
