@@ -5,10 +5,10 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-1C1c4w4t/"
+#res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-1C1c4w4t/"
 #res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-1C2c4w8t/"
 #res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-1C4c8w16t/"
-#res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-4C4c8w32t/"
+res_root = "./scripts/outputs/ASPLOS-COMP-knn-im-4C4c8w32t/"
 df_file = res_root + "dataframe.feather"
 output_dir = res_root + "comparative_analysis/"
 os.makedirs(output_dir, exist_ok=True)
