@@ -32,7 +32,7 @@ conv2dAirbenderResFname.update({
     "workload_size_x" : 'x{workload_size_x}',
     "workload_size_y" : 'y{workload_size_y}',
     "out_channels" : 'K{out_channels}',
-    "in_channels" : 'C{in_channels}',
+    "in_channels" : 'Ch{in_channels}',
     "filter_size" : 'f{filter_size}',
     "optimize" : 'O{optimize}',
     "repeat" : 'r{repeat}',

@@ -16,11 +16,11 @@ vlen : "5:8:1"
 dataset   : 
   - cora
   - citeseer
-  - pubmed
+#  - pubmed
 optimize      : 0
 repeat        : 
   - 1
   - 2
 kernel :
-  - aggr-el-limbo
   - aggr-el-base
+  - aggr-el-limbo

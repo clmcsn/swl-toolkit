@@ -22,5 +22,5 @@ repeat        :
   - 1
   - 2
 kernel :
-  - aggr-el-limbo
   - aggr-el-base
+  - aggr-el-limbo

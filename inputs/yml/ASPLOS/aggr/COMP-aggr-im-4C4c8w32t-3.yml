@@ -12,7 +12,7 @@ dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-vlen : "1:4:1"
+vlen : "8:10:1"
 dataset   : 
   - cora
   - citeseer

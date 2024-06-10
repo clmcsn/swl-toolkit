@@ -1,0 +1,27 @@
+app       : conv2d-airbender
+driver    : simx
+clusters  : 1
+threads   : 8
+warps     : 4
+cores     : 2
+l2cache   : True
+dcache_ports  : 3
+################### ideal memory model ###################
+ssr_credits   : 16
+dcache_banks  : 1024
+dcache_size   : 4194304 #4MB
+##########################################################
+workload_size_x : 4
+workload_size_y : "8:100:4"
+out_channels : 8
+in_channels : 8
+optimize : 1
+repeat : 
+  - 1
+  - 2
+kernel : 
+  - conv2d-ssr3
+  - conv2d-ssr2
+  - conv2d-ssr
+  - conv2d-loop
+  - conv2d-asm

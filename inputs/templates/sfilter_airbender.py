@@ -22,8 +22,8 @@ sfilterAirbenderDefaults.update({
 
 sfilterAirbenderResFname = dict(AirbenderResultFname)
 sfilterAirbenderResFname.update({
-    "workload_size_x" : 'xs{workload_size}',
-    "workload_size_y" : 'ys{workload_size}',
+    "workload_size_x" : 'xs{workload_size_x}',
+    "workload_size_y" : 'ys{workload_size_y}',
     "optimize" : 'O{optimize}',
     "repeat" : 'r{repeat}',
     "kernel" : '{kernel}',
