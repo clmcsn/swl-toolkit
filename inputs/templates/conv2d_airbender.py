@@ -12,6 +12,7 @@ conv2dAirbenderCmd.update({
     "in_channels" : '-C {in_channels} ',
     "filter_size" : '-f {filter_size} ',
     "repeat" : '-r {repeat} ',
+    "write_back" : '-w {write_back} ',
     "kernel" : '-k {kernel}"'
 })
 
@@ -24,6 +25,7 @@ conv2dAirbenderDefaults.update({
     "filter_size" : "3",
     "repeat" : "1",
     "optimize" : "0",
+    "write_back" : "1",
     "kernel" : "conv2d"
 })
 
@@ -36,6 +38,7 @@ conv2dAirbenderResFname.update({
     "filter_size" : 'f{filter_size}',
     "optimize" : 'O{optimize}',
     "repeat" : 'r{repeat}',
+    "write_back" : 'w{write_back}',
     "kernel" : '{kernel}',
     "groups" : 'hw{groups}',
 })

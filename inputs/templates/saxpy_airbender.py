@@ -7,6 +7,7 @@ saxpyAirbenderCmd.update({
     "workload_size" : '--args="-n {workload_size} ',
     "optimize" : '-O {optimize} ',
     "repeat" : '-r {repeat} ',
+    "write_back" : '-w {write_back} ',
     "kernel" : '-k {kernel}"'
 })
 
@@ -15,6 +16,7 @@ saxpyAirbenderDefaults.update({
     "workload_size" : "256",
     "repeat" : "1",
     "optimize" : "0",
+    "write_back" : "1",
     "kernel" : "saxpy"
 })
 
@@ -23,6 +25,7 @@ saxpyAirbenderResFname.update({
     "workload_size" : 'n{workload_size}',
     "optimize" : 'O{optimize}',
     "repeat" : 'r{repeat}',
+    "write_back" : 'w{write_back}',
     "kernel" : '{kernel}',
     "groups" : 'hw{groups}',
 })

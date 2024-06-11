@@ -10,6 +10,7 @@ sgemmAirbenderCmd.update({
     "workload_size_y" : '-y {workload_size_y} ',
     "workload_size_z" : '-z {workload_size_z} ',
     "repeat" : '-r {repeat} ',
+    "write_back" : '-w {write_back} ',
     "kernel" : '-k {kernel}"'
 })
 
@@ -20,6 +21,7 @@ sgemmAirbenderDefaults.update({
     "workload_size_z" : "8",
     "repeat" : "1",
     "optimize" : "0",
+    "write_back" : "1",
     "kernel" : "sgemm"
 })
 
@@ -30,6 +32,7 @@ sgemmAirbenderResFname.update({
     "workload_size_z" : 'z{workload_size_z}',
     "optimize" : 'O{optimize}',
     "repeat" : 'r{repeat}',
+    "write_back" : 'w{write_back}',
     "kernel" : '{kernel}',
     "groups" : 'hw{groups}',
 })
