@@ -1,25 +1,25 @@
 app           : saxpy-airbender
 driver        : simx
 clusters      : 1
-threads       : 16
-warps         : 8
+threads       : 8
+warps         : 4
 cores         : 4
 dcache_ports  : 3
 ################ ideal memory model ################
 ssr_credits   : 16
-dcache_banks  : 1024
+dcache_banks  : 32
 dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-workload_size : "2048:52000:800"
+workload_size : "1024:15400:256"
 optimize      : "-1"
-repeat        :
+repeat        : 
   - 1
   - 2
 kernel :
   - saxpy-ssr3
-  - saxpy-ssr2
-  - saxpy-ssr
-  - saxpy-loop
-  - saxpy
+  #- saxpy-ssr2
+  #- saxpy-ssr
+  #- saxpy-loop
+  #- saxpy

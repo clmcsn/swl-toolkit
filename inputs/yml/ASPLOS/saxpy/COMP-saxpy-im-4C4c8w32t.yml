@@ -12,7 +12,7 @@ dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-workload_size : "16384:600000:6500"
+workload_size : "16384:410000:6500"
 optimize      : "-1"
 repeat        : 
   - 1

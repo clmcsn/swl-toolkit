@@ -22,4 +22,4 @@ kernel :
   - sfilter-ssr2
   - sfilter-ssr
   - sfilter-loop
-  - sfilter-asm
+  - sfilter

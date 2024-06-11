@@ -1,27 +1,29 @@
-app       : conv2d-airbender
+app       : sgemm-airbender
 driver    : simx
 clusters  : 1
 threads   : 16
 warps     : 8
 cores     : 4
 l2cache   : True
-dcache_ports  : 3
+dcache_ports  : 2
 ################### ideal memory model ###################
 ssr_credits   : 16
-dcache_banks  : 1024
+dcache_banks  : 32
 dcache_size   : 4194304 #4MB
 ##########################################################
 workload_size_x : 256
-workload_size_y : "8:100:4"
-out_channels : 1
-in_channels : 8
+workload_size_y : "8:60:4"
+workload_size_z : 16
 optimize : 1
 repeat : 
   - 1
   - 2
 kernel : 
-  - conv2d-ssr3
-  - conv2d-ssr2
-  - conv2d-ssr
-  - conv2d-loop
-  - conv2d-asm
+  - sgemm-ssr3
+  #- sgemm-ssr2
+  #- sgemm-ssr
+  #- sgemm-loop
+  #- sgemm
+write_back :
+  - 0
+  - 1

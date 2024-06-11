@@ -1,25 +1,28 @@
-app           : saxpy-airbender
+app           : vecadd-airbender
 driver        : simx
 clusters      : 1
-threads       : 16
+threads       : 32
 warps         : 8
 cores         : 4
-dcache_ports  : 3
+dcache_ports  : 1
 ################ ideal memory model ################
 ssr_credits   : 16
-dcache_banks  : 1024
+dcache_banks  : 32
 dcache_size   : 4194304 #4MB
 ####################################################
 l2cache       : True
 # make sure we have 128 "randomic" data points
-workload_size : "2048:52000:800"
+workload_size : "4096:62000:1000"
 optimize      : "-1"
-repeat        :
+repeat        : 
   - 1
   - 2
 kernel :
-  - saxpy-ssr3
-  - saxpy-ssr2
-  - saxpy-ssr
-  - saxpy-loop
-  - saxpy
+  - vecadd-ssr3
+  #- vecadd-ssr2
+  #- vecadd-ssr
+  #- vecadd-loop
+  #- vecadd-base
+write_back :
+  - 0
+  - 1
