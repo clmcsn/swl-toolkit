@@ -25,3 +25,6 @@ kernel :
   #- conv2d-ssr
   #- conv2d-loop
   #- conv2d-asm
+write_back :
+  - 0
+  - 1

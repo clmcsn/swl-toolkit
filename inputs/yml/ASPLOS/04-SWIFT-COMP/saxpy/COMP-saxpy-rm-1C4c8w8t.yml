@@ -23,3 +23,6 @@ kernel :
   #- saxpy-ssr
   #- saxpy-loop
   #- saxpy
+write_back :
+  - 0
+  - 1

@@ -23,3 +23,6 @@ kernel :
   #- knn-ssr
   #- knn-loop
   #- knn-asm
+write_back :
+  - 0
+  - 1

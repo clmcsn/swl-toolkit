@@ -23,3 +23,6 @@ kernel :
   #- sfilter-ssr
   #- sfilter-loop
   #- sfilter
+write_back :
+  - 0
+  - 1

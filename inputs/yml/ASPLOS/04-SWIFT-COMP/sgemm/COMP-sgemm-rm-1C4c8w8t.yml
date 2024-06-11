@@ -25,3 +25,6 @@ kernel :
   #- sgemm-ssr
   #- sgemm-loop
   #- sgemm
+write_back :
+  - 0
+  - 1

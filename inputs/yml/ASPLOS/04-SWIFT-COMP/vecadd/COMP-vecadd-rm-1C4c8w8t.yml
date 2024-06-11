@@ -23,3 +23,6 @@ kernel :
   #- vecadd-ssr
   #- vecadd-loop
   #- vecadd-base
+write_back :
+  - 0
+  - 1
