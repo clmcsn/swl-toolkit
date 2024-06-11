@@ -59,7 +59,7 @@ with Manager() as manager:
             while( FIRST_ITER and (not parser.exp_book.check_status(ID=i)) and parser.args.lock_on_first): time.sleep(2) # Lock on the first experiment to finish to get the code compiled
             #if r.get(): exit(1)
             FIRST_ITER = False
-            time.sleep(1)
+            time.sleep(0.1)
         pool.close()
         pool.join()
 print("All experiments finished!")
