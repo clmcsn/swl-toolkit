@@ -1,6 +1,6 @@
 app           : saxpy-airbender
 driver        : simx
-clusters      : 4
+clusters      : 1
 threads       : 32
 warps         : 8
 cores         : 4
