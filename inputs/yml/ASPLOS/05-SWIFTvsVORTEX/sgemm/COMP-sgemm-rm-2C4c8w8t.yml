@@ -1,0 +1,28 @@
+app       : sgemm-airbender
+driver    : simx
+clusters  : 2
+threads   : 8
+warps     : 8
+cores     : 4
+l2cache   : True
+dcache_ports  : 1
+################### ideal memory model ###################
+ssr_credits   : 16
+dcache_banks  : 8
+dcache_size   : 4194304 #4MB
+##########################################################
+workload_size_x : 128
+workload_size_y : "8:60:4"
+#workload_size_y : "4:160:2"
+workload_size_z : 16
+optimize : 1
+repeat : 
+  - 1
+  - 2
+kernel : 
+  #- sgemm-ssr3
+  #- sgemm-ssr2
+  #- sgemm-ssr
+  #- sgemm-loop
+  - sgemm
+write_back : 0

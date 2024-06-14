@@ -1,4 +1,4 @@
-- "clusters <= cores"
+#- "clusters <= cores"
 - "threads >= warps"
 - "threads >= cores"
 #- "workload_size >= clusters * threads * warps * cores"

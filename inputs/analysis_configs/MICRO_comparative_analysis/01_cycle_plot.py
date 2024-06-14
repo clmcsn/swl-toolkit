@@ -94,7 +94,7 @@ for d in vecadd_dirs:
             continue
         avg = vecadd_df[vecadd_df['kernel'] == k]['cycles_ratio'].mean()
         vecadd_avg_df = pd.concat([vecadd_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
-        instrs_max = vecadd_df[vecadd_df['kernel'] == k]['instrs_ratio'].max()
+        instrs_max = vecadd_df[vecadd_df['kernel'] == k]['instrs_ratio'].mean()#max()
         vecadd_max_instrs_ratio = pd.concat([vecadd_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
 
 #print(vecadd_avg_df)
@@ -143,7 +143,7 @@ for d in sgemm_dirs:
             continue
         avg = sgemm_df[sgemm_df['kernel'] == k]['cycles_ratio'].mean()
         sgemm_avg_df = pd.concat([sgemm_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
-        instrs_max = sgemm_df[sgemm_df['kernel'] == k]['instrs_ratio'].max()
+        instrs_max = sgemm_df[sgemm_df['kernel'] == k]['instrs_ratio'].mean()#max()
         sgemm_max_instrs_ratio = pd.concat([sgemm_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
     
 #print(sgemm_avg_df)
@@ -190,7 +190,7 @@ for d in saxpy_dirs:
             continue
         avg = saxpy_df[saxpy_df['kernel'] == k]['cycles_ratio'].mean()
         saxpy_avg_df = pd.concat([saxpy_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
-        instrs_max = saxpy_df[saxpy_df['kernel'] == k]['instrs_ratio'].max()
+        instrs_max = saxpy_df[saxpy_df['kernel'] == k]['instrs_ratio'].mean()#max()
         saxpy_max_instrs_ratio = pd.concat([saxpy_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
 
 #print(saxpy_avg_df)
@@ -237,7 +237,7 @@ for d in knn_dirs:
             continue
         avg = knn_df[knn_df['kernel'] == k]['cycles_ratio'].mean()
         knn_avg_df = pd.concat([knn_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
-        instrs_max = knn_df[knn_df['kernel'] == k]['instrs_ratio'].max()
+        instrs_max = knn_df[knn_df['kernel'] == k]['instrs_ratio'].mean()#max()
         knn_max_instrs_ratio = pd.concat([knn_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
 
 #print(knn_avg_df)
@@ -250,7 +250,7 @@ sfilter_max_instrs_ratio = pd.DataFrame()
 for d in sfilter_dirs:
     d_hw_cfg = d.split('-')[-1][:-1]
     sfilter_df_file = d + "dataframe.feather"
-    sfilter_baseline = 'sfilter-asm'
+    sfilter_baseline = 'sfilter'
 
     sfilter_df = pd.read_feather(sfilter_df_file)
     sfilter_df_repeat1 = sfilter_df[sfilter_df['repeat'] == 1].reset_index(drop=True)
@@ -286,21 +286,64 @@ for d in sfilter_dirs:
             continue
         avg = sfilter_df[sfilter_df['kernel'] == k]['cycles_ratio'].mean()
         sfilter_avg_df = pd.concat([sfilter_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
-        instrs_max = sfilter_df[sfilter_df['kernel'] == k]['instrs_ratio'].max()
+        instrs_max = sfilter_df[sfilter_df['kernel'] == k]['instrs_ratio'].mean()#max()
         sfilter_max_instrs_ratio = pd.concat([sfilter_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
 
 #print(sfilter_avg_df)
 
 ###################################################################
 # conv2d df preparation
-# TODO
+
+conv2d_avg_df = pd.DataFrame()
+conv2d_max_instrs_ratio = pd.DataFrame()
+for d in conv2d_dirs:
+    d_hw_cfg = d.split('-')[-1][:-1]
+    conv2d_df_file = d + "dataframe.feather"
+    conv2d_baseline = 'conv2d-asm'
+
+    conv2d_df = pd.read_feather(conv2d_df_file)
+    conv2d_df_repeat1 = conv2d_df[conv2d_df['repeat'] == 1].reset_index(drop=True)
+    conv2d_df_repeat2 = conv2d_df[conv2d_df['repeat'] == 2].reset_index(drop=True)
+
+    # merge the two dataframes makeing the subtract of instructions
+    conv2d_df = pd.merge(conv2d_df_repeat1, conv2d_df_repeat2, on=['workload_size_x', 'workload_size_y', 'kernel'], suffixes=('_r1', '_r2'))
+    conv2d_df['cycles'] = conv2d_df['cycles_r2'] - conv2d_df['cycles_r1']
+    conv2d_df['instrs'] = conv2d_df['instrs_r2'] - conv2d_df['instrs_r1']
+
+    conv2d_df['workload_size'] = conv2d_df['workload_size_x'] * conv2d_df['workload_size_y'] 
+
+    #sort by kernel name then workload size
+    conv2d_df = conv2d_df.sort_values(by=['kernel', 'workload_size'])
+
+    # removing outliers
+    # negative values and zeros get the closes previous values with ffill
+    conv2d_df['cycles'] = conv2d_df['cycles'].mask(conv2d_df['cycles'] <= 0).ffill()
+
+    conv2d_df['cycles_ratio'] = 1
+    for ws in conv2d_df['workload_size'].unique():
+        conv2d_base_cycles = conv2d_df[(conv2d_df['workload_size'] == ws) & (conv2d_df['kernel'] == conv2d_baseline)]['cycles'].values[0]
+        conv2d_df.loc[(conv2d_df['workload_size'] == ws) & (conv2d_df['kernel'] != conv2d_baseline), 'cycles_ratio'] = conv2d_base_cycles / conv2d_df['cycles']
+        conv2d_base_instrs = conv2d_df[(conv2d_df['workload_size'] == ws) & (conv2d_df['kernel'] == conv2d_baseline)]['instrs'].values[0]
+        conv2d_df.loc[(conv2d_df['workload_size'] == ws) & (conv2d_df['kernel'] != conv2d_baseline), 'instrs_ratio'] = conv2d_base_instrs / conv2d_df['instrs']
+
+    #change kernel names
+    conv2d_df['kernel'] = conv2d_df['kernel'].replace({'conv2d-loop': 'loops', 'conv2d-ssr': '+1xSSL', 'conv2d-ssr2': '+2xSSL', 'conv2d-ssr3': '+3xSSL'})
+
+    #getting avg cycles ratio
+    for k in conv2d_df['kernel'].unique():
+        if k == conv2d_baseline:
+            continue
+        avg = conv2d_df[conv2d_df['kernel'] == k]['cycles_ratio'].mean()
+        conv2d_avg_df = pd.concat([conv2d_avg_df, pd.DataFrame({'kernel': [k], 'avg_cycles_ratio': [avg], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
+        instrs_max = conv2d_df[conv2d_df['kernel'] == k]['instrs_ratio'].mean()
+        conv2d_max_instrs_ratio = pd.concat([conv2d_max_instrs_ratio, pd.DataFrame({'kernel': [k], 'max_instrs_ratio': [instrs_max], 'hw_cfg': [d_hw_cfg]})], ignore_index=True)
 
 ###################################################################
 
 #plotting
 cm = 1/2.54  # centimeters in inches
 plot_size_x = (2*8.45 +0.83)*cm
-plot_size_y = plot_size_x*(9/22)
+plot_size_y = plot_size_x*(11/22)
 scale = 5/3
 #subdividing the plot into 4 subplots
 
@@ -323,7 +366,7 @@ for i, hw_cfg in enumerate(hw_cfgs):
     #for j, bar in enumerate(ax.patches):
     #    bar.set_hatch(hatches[j])
     axs[i, 0].set_ylim(0, y_axis_lim)
-    axs[i, 0].set_ylabel('HW: {}\nAvg Cycle Ratio'.format(hw_cfgs_str[i]))
+    axs[i, 0].set_ylabel('HW: {}\nAvg Speedup'.format(hw_cfgs_str[i]))
     #tilt x axis labels
     for tick in axs[i, 0].get_xticklabels():
         tick.set_rotation(xtick_tilt)
@@ -419,10 +462,29 @@ for i, hw_cfg in enumerate(hw_cfgs):
     add_grid(ax, y_axis_lim)
 
 #conv2d
-#TODO
+max_cycles_ratio = conv2d_avg_df['avg_cycles_ratio'].max()
+max_instrs_ratio = conv2d_max_instrs_ratio['max_instrs_ratio'].max()
+ymax = max_cycles_ratio if max_cycles_ratio > max_instrs_ratio else max_instrs_ratio
+y_axis_lim = ymax + 0.05*ymax
+axs[0, 5].set_title('conv2d\nC=8 K=1\nX*Y→[4:50:0.25]')
+for i, hw_cfg in enumerate(hw_cfgs):
+    conv2d_avg_df_hw = conv2d_avg_df[conv2d_avg_df['hw_cfg'] == hw_cfg]
+    ax = sns.barplot(data=conv2d_avg_df_hw, x='kernel', y='avg_cycles_ratio', ax=axs[i, 5])
+    max_instrs_ratio = conv2d_max_instrs_ratio[conv2d_max_instrs_ratio['hw_cfg'] == hw_cfg]
+    sns.scatterplot(data=max_instrs_ratio, x='kernel', y='max_instrs_ratio', hue='kernel', ax=ax, marker='D',legend=False, edgecolor='black')
+    #changing hatches
+    #for j, bar in enumerate(ax.patches):
+    #    bar.set_hatch(hatches[j])
+    axs[i, 5].set_ylim(0, y_axis_lim)
+    axs[i, 5].set_ylabel('')
+    #tilt x axis labels
+    for tick in axs[i, 5].get_xticklabels():
+        tick.set_rotation(xtick_tilt)
+    axs[i, 5].set_xlabel('')
+    add_grid(ax, y_axis_lim)
 
 #add custom legend for max instrs ratio
-legend_elements = [Line2D([0], [0], marker='D', color='w', label='Max Instructions Ratio', markerfacecolor='black', markersize=8)]
+legend_elements = [Line2D([0], [0], marker='D', color='w', label='Avg Instructions Reduciton', markerfacecolor='black', markersize=8)]
 fig.legend(handles=legend_elements, loc=8, bbox_to_anchor=(0.5, - 0.06), ncol=1)
 
 

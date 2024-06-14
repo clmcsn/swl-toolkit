@@ -62,7 +62,7 @@ saxpy_df_repeat2 = saxpy_df[saxpy_df['repeat'] == 2].reset_index(drop=True)
 # merge the two dataframes makeing the subtract of instructions
 saxpy_df = pd.merge(saxpy_df_repeat1, saxpy_df_repeat2, on=['workload_size', 'threads', 'warps', 'dcache_ports','clusters', 'cores', 'write_back', 'app'], suffixes=('_r1', '_r2'))
 saxpy_df['instrs'] = saxpy_df['instrs_r2'] - saxpy_df['instrs_r1']
-saxpy_df['cycles'] = saxpy_df['cycles_r2'] #- saxpy_df['cycles_r1']
+saxpy_df['cycles'] = saxpy_df['cycles_r2'] - saxpy_df['cycles_r1']
 saxpy_df['dcache_bank_stalls'] = saxpy_df['dcache_bank_stalls_r2'] - saxpy_df['dcache_bank_stalls_r1']
 saxpy_df['ssr_stalls'] = (saxpy_df['ssr_stalls_r2'] - saxpy_df['ssr_stalls_r1']) / saxpy_df['warps']
 
@@ -211,9 +211,11 @@ cm = 1/2.54  # centimeters in inches
 scale = 5
 #subdividing the plot into 4 subplots
 
-fontproperties = {'family': 'Calibri', 'size': 16}
 hatches = ['//', '..', 'xx']
-aspectR=2.4
+aspectR=3
+y_axis_str = 1e2
+font_incr = 3.5
+fontproperties = {'family': 'Calibri', 'size': 10*font_incr}
 
 #fig, axs = plt.subplots(1,1,figsize=(8.45/3*cm*scale, 8.45/2.5*cm*scale))
 
@@ -225,25 +227,27 @@ g = sns.catplot(data=df.loc[df['write_back']==0], x='app', y='cycles', hue='thre
 #lg = plt.legend(title='Threads', loc='upper center', bbox_to_anchor=(0.5, 1), ncol=3, prop=fontproperties,title_fontproperties=fontproperties)
 
 #add grid
-g.ax.grid(axis='x', linestyle='--', linewidth=0.5)
-g.ax.grid(axis='y')
+#g.ax.grid(axis='x', linestyle='--', linewidth=0.5)
+#g.ax.grid(axis='y')
 #g.ax.grid(axis='y', which='minor', linestyle=':', linewidth=0.5)
 
 #y axis log scale
 plt.yscale('log')
-plt.ylim(1, y_lim)
+plt.ylim(y_axis_str, y_lim)
 plt.ylabel('Cycles')
 #remove '-airbender' from app names
-plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
+#plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
 plt.xlabel('')
-#x axis tilt
-plt.xticks(rotation=30)
+# remove x ticks
+plt.xticks(ticks=range(6), labels=['' for app in df['app'].unique()])
+##x axis tilt
+#plt.xticks(rotation=30)
 
 for item in ([g.ax.xaxis.label, g.ax.yaxis.label] +
              g.ax.get_xticklabels() + g.ax.get_yticklabels()):
     item.set_fontname('Calibri')
     size = item.get_fontsize()
-    item.set_fontsize(size*1.7)
+    item.set_fontsize(size*font_incr)
 
 plt.tight_layout()
 
@@ -262,7 +266,7 @@ g =sns.catplot(data=df.loc[df['write_back']==1], x='app', y='cycles', hue='threa
 plt.legend(title='Threads', loc='upper center', bbox_to_anchor=(0.5, 1), ncol=3, prop=fontproperties, title_fontproperties=fontproperties)
 #y axis log scale
 plt.yscale('log')
-plt.ylim(1, y_lim)
+plt.ylim(y_axis_str, y_lim)
 plt.ylabel('Cycles')
 #remove '-airbender' from app names
 plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
@@ -274,7 +278,7 @@ for item in ([g.ax.xaxis.label, g.ax.yaxis.label] +
              g.ax.get_xticklabels() + g.ax.get_yticklabels()):
     item.set_fontname('Calibri')
     size = item.get_fontsize()
-    item.set_fontsize(size*1.7)
+    item.set_fontsize(size*font_incr)
 
 plt.tight_layout()
 
@@ -293,19 +297,19 @@ dcache_bank_stalls = y_lim
 df['dcache_bank_stalls_norm'] = df['dcache_bank_stalls'] / df['threads']
 g = sns.catplot(data=df.loc[df['write_back']==0], x='app', y='dcache_bank_stalls', hue='threads', kind='bar', height=8.45/3*cm*scale, aspect=aspectR, width=0.6, legend=False)
 #add dcache stalls normalized to thread as scatterplot, increase marker size
-sns.scatterplot(data=df.loc[df['write_back']==0], x='app', y='dcache_bank_stalls_norm', hue='threads', style='threads', ax=g.ax, s=150, palette='tab10')
+sns.scatterplot(data=df.loc[df['write_back']==0], x='app', y='dcache_bank_stalls_norm', hue='threads', style='threads', ax=g.ax, s=400, palette='tab10', edgecolor='black')
 
 #add grid
-plt.grid(axis='x', linestyle='--', linewidth=0.5)
-plt.grid(axis='y')
+#plt.grid(axis='x', linestyle='--', linewidth=0.5)
+#plt.grid(axis='y')
 #plt.grid(axis='y', which='minor', linestyle=':', linewidth=0.5)
 
 
 #add legend on the top
-plt.legend(title='Threads', loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, prop=fontproperties,title_fontproperties=fontproperties)
+plt.legend(title='Threads', loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, prop=fontproperties,title_fontproperties=fontproperties, markerscale=4)
 #y axis log scale
 plt.yscale('log')
-plt.ylim(1, y_lim)
+plt.ylim(y_axis_str, y_lim)
 plt.ylabel('DCache Bank Stalls')
 #remove '-airbender' from app names
 plt.xlabel('')
@@ -317,7 +321,7 @@ for item in ([g.ax.xaxis.label, g.ax.yaxis.label] +
              g.ax.get_xticklabels() + g.ax.get_yticklabels()):
     item.set_fontname('Calibri')
     size = item.get_fontsize()
-    item.set_fontsize(size*1.7)
+    item.set_fontsize(size*font_incr)
 
 plt.tight_layout()
 
@@ -336,7 +340,7 @@ g = sns.catplot(data=df.loc[df['write_back']==1], x='app', y='dcache_bank_stalls
 plt.legend(title='Threads', loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, prop=fontproperties,title_fontproperties=fontproperties)
 #y axis log scale
 plt.yscale('log')
-plt.ylim(1, y_lim)
+plt.ylim(y_axis_str, y_lim)
 plt.ylabel('Dcache Bank Stalls')
 #remove '-airbender' from app names
 plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
@@ -348,7 +352,7 @@ for item in ([g.ax.xaxis.label, g.ax.yaxis.label] +
              g.ax.get_xticklabels() + g.ax.get_yticklabels()):
     item.set_fontname('Calibri')
     size = item.get_fontsize()
-    item.set_fontsize(size*1.7)
+    item.set_fontsize(size*font_incr)
 
 plt.tight_layout()
 
@@ -366,8 +370,8 @@ y_lim = dcache_bank_stalls
 g = sns.catplot(data=df.loc[df['write_back']==0], x='app', y='ssr_stalls', hue='threads', kind='bar', height=8.45/3*cm*scale, aspect=aspectR, width=0.6, legend=False)
 
 #add grid
-plt.grid(axis='x', linestyle='--', linewidth=0.5)
-plt.grid(axis='y')
+#plt.grid(axis='x', linestyle='--', linewidth=0.5)
+#plt.grid(axis='y')
 #plt.grid(axis='y', which='minor', linestyle=':', linewidth=0.5)
 
 #add legend on the top
@@ -375,19 +379,21 @@ plt.grid(axis='y')
 
 #y axis log scale
 plt.yscale('log')
-plt.ylim(1, y_lim)
-plt.ylabel('SSR Stalls')
+plt.ylim(y_axis_str, y_lim)
+plt.ylabel('Warp SSL Stalls')
 #remove '-airbender' from app names
 plt.xlabel('')
-plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
-#x axis tilt
-plt.xticks(rotation=30)
+#remove x ticks
+plt.xticks(ticks=range(6), labels=['' for app in df['app'].unique()])
+#plt.xticks(ticks=range(6), labels=[app.replace('-airbender', '') for app in df['app'].unique()])
+##x axis tilt
+#plt.xticks(rotation=30)
 
 for item in ([g.ax.xaxis.label, g.ax.yaxis.label] +
                 g.ax.get_xticklabels() + g.ax.get_yticklabels()):
         item.set_fontname('Calibri')
         size = item.get_fontsize()
-        item.set_fontsize(size*1.7)
+        item.set_fontsize(size*font_incr)
 
 plt.tight_layout()
 

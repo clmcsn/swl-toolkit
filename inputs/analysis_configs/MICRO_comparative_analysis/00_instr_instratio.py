@@ -89,26 +89,26 @@ cm = 1/2.54  # centimeters in inches
 scale = 5
 #subdividing the plot into 4 subplots
 
-fig, axs = plt.subplots(2, 2, figsize=(8.45/3*cm*scale, 8.45/2.5*cm*scale))
+fig, axs = plt.subplots(2, 2, figsize=(8.45/3*cm*scale, 8.45/3.2*cm*scale))
 
 #plot instrs, y axis is instrs, x axis is workload_size, and we have a vertical plot for each kernel
 sns.lineplot(x='workload_size', y='instrs', hue='kernel', hue_order=vecadd_hue_order, style='kernel', style_order=vecadd_hue_order, data=vecadd_df, ax=axs[0, 0], linewidth=1.8)
 axs[0, 0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 #plot name
-axs[0, 0].set_title('vecadd instrs')
+axs[0, 0].set_title('vecadd')
 axs[0, 0].grid()
 #change axis name
-axs[0, 0].set_ylabel('Instructions')
+axs[0, 0].set_ylabel('Instructions (#)')
 axs[0, 0].set_xlabel('Thread Iterations')
 #remove legend
 axs[0, 0].get_legend().remove()
 
 sns.lineplot(x='workload_size', y='instrs', hue='kernel', hue_order=sgemm_hue_order, style='kernel', style_order=sgemm_hue_order, data=sgemm_df, ax=axs[1, 0], linewidth=1.8)
 #plot name
-axs[1, 0].set_title('sgemm instrs')
+axs[1, 0].set_title('sgemm')
 axs[1, 0].grid()
 #change axis name
-axs[1, 0].set_ylabel('Instructions')
+axs[1, 0].set_ylabel('Instructions (#)')
 axs[1, 0].set_xlabel('Thread Iterations')
 #remove legend
 axs[1, 0].get_legend().remove()
@@ -116,10 +116,10 @@ axs[1, 0].get_legend().remove()
 #plot instr_ratio, y axis is instr_ratio, x axis is workload_size, and we have a vertical plot for each kernel
 sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', hue_order=vecadd_hue_order, style='kernel', style_order=vecadd_hue_order, data=vecadd_df, ax=axs[0, 1], linewidth=1.8)
 #plot name
-axs[0, 1].set_title('vecadd instrs ratio')
+axs[0, 1].set_title('vecadd')
 axs[0, 1].grid()
 #change axis name
-axs[0, 1].set_ylabel('Instructions Ratio')
+axs[0, 1].set_ylabel('Instructions Reduction')
 axs[0, 1].set_xlabel('Thread Iterations')
 #remove legend
 axs[0, 1].get_legend().remove()
@@ -127,16 +127,16 @@ axs[0, 1].get_legend().remove()
 sns.lineplot(x='workload_size', y='instr_ratio', hue='kernel', hue_order=sgemm_hue_order, style='kernel', style_order=sgemm_hue_order, data=sgemm_df, ax=axs[1, 1], linewidth=1.8)
 axs[1, 1].grid()
 #plot name
-axs[1, 1].set_title('sgemm instrs ratio')
+axs[1, 1].set_title('sgemm')
 #change axis name
-axs[1, 1].set_ylabel('Instructions Ratio')
+axs[1, 1].set_ylabel('Instructions Reduction')
 axs[1, 1].set_xlabel('Thread Iterations')
 #remove legend
 axs[1, 1].get_legend().remove()
 
 #add common legend
 handles, labels = axs[0, 1].get_legend_handles_labels()
-fig.legend(handles, labels, loc=8, bbox_to_anchor=(0.5, - 0.06), ncol=3)
+fig.legend(handles, labels, loc=8, bbox_to_anchor=(0.5, - 0.09), ncol=3)
 
 #change font to calibi and increase size
 for ax in axs.flat:
@@ -149,7 +149,7 @@ for ax in axs.flat:
 plt.tight_layout()
 
 #update spaces between subplots
-plt.subplots_adjust(hspace=0.3, wspace=0.3)
+#plt.subplots_adjust(hspace=0.3, wspace=0.3)
 
 #####################################################################
 # Save the plot
