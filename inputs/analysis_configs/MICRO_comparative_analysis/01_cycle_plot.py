@@ -484,7 +484,7 @@ for i, hw_cfg in enumerate(hw_cfgs):
     add_grid(ax, y_axis_lim)
 
 #add custom legend for max instrs ratio
-legend_elements = [Line2D([0], [0], marker='D', color='w', label='Avg Instructions Reduciton', markerfacecolor='black', markersize=8)]
+legend_elements = [Line2D([0], [0], marker='D', color='w', label='Avg Instructions Reduction', markerfacecolor='black', markersize=8)]
 fig.legend(handles=legend_elements, loc=8, bbox_to_anchor=(0.5, - 0.06), ncol=1)
 
 
@@ -506,3 +506,4 @@ os.makedirs(output_dir, exist_ok=True)
 output_file = output_dir + "05_01_CYCLE"
 
 plt.savefig(output_file + ".pdf", format='pdf', bbox_inches='tight',pad_inches=0)
+plt.savefig(output_file + ".svg", format='svg', bbox_inches='tight',pad_inches=0)

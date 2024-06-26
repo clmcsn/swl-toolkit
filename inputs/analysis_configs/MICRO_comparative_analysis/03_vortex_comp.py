@@ -331,6 +331,7 @@ g = sns.catplot(x='app', y='area_eff', hue='clusters', data=avg_df, kind='bar', 
 plt.legend(title='Clusters', loc='upper left', ncol=4, prop=fontproperties,title_fontproperties=fontproperties)
 
 plt.yscale('log')
+plt.ylabel('Area x Latency (mm^2*cycles)')
 plt.ylim(1e2*5, y_lim)
 
 #remove '-airbender' from app names

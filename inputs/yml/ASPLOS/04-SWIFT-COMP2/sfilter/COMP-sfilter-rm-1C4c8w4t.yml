@@ -1,27 +1,25 @@
-app       : sgemm-airbender
+app       : sfilter-airbender
 driver    : simx
-clusters  : 2
-threads   : 16
+clusters  : 1
+threads   : 4
 warps     : 8
 cores     : 4
 l2cache   : True
-dcache_ports  : 1
+dcache_ports  : 3
 ################### ideal memory model ###################
 ssr_credits   : 16
 dcache_banks  : 16
 dcache_size   : 4194304 #4MB
 ##########################################################
-workload_size_x : 256
+workload_size_x : 64
 workload_size_y : "8:60:4"
-#workload_size_y : "4:160:2"
-workload_size_z : 16
 optimize : 1
 repeat : 
   - 1
   - 2
 kernel : 
-  #- sgemm-ssr3
-  #- sgemm-ssr2
-  #- sgemm-ssr
-  #- sgemm-loop
-  - sgemm
+  - sfilter-ssr3
+  #- sfilter-ssr2
+  #- sfilter-ssr
+  #- sfilter-loop
+  #- sfilter

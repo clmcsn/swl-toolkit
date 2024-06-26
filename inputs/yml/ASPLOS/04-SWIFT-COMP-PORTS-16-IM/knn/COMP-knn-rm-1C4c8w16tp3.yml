@@ -1,0 +1,25 @@
+app           : knn-airbender
+driver        : simx
+clusters      : 1
+threads       : 16
+warps         : 8
+cores         : 4
+dcache_ports  : 3
+################ ideal memory model ################
+ssr_credits   : 16
+dcache_banks  : 1024
+dcache_size   : 4194304 #4MB
+####################################################
+l2cache       : True
+# make sure we have 128 "randomic" data points
+workload_size : "2048:32000:540"
+optimize      : "-1"
+repeat        :
+  - 1
+  - 2
+kernel :
+  - knn-ssr3
+  #- knn-ssr2
+  #- knn-ssr
+  #- knn-loop
+  #- knn-asm

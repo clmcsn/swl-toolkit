@@ -1,0 +1,25 @@
+app           : vecadd-airbender
+driver        : simx
+clusters      : 1
+threads       : 4
+warps         : 8
+cores         : 4
+dcache_ports  : 3
+################ ideal memory model ################
+ssr_credits   : 16
+dcache_banks  : 16
+dcache_size   : 4194304 #4MB
+####################################################
+l2cache       : True
+# make sure we have 128 "randomic" data points
+workload_size : "512:7700:120"
+optimize      : "-1"
+repeat        : 
+  - 1
+  - 2
+kernel :
+  - vecadd-ssr3
+  #- vecadd-ssr2
+  #- vecadd-ssr
+  #- vecadd-loop
+  #- vecadd-base

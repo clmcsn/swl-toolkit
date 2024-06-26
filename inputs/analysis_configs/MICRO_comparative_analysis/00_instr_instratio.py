@@ -37,8 +37,8 @@ for ws in vecadd_df['workload_size'].unique():
     vecadd_df.loc[(vecadd_df['workload_size'] == ws) & (vecadd_df['kernel'] != vecadd_baseline), 'instr_ratio'] = vacadd_base_instrs / vecadd_df['instrs']
 
 #change kernel names
-vecadd_df['kernel'] = vecadd_df['kernel'].replace({'vecadd-ssr': 'loops + 1xSSL', 'vecadd-ssr2': 'loops + 2xSSL', 'vecadd-ssr3': 'loops + 3xSSL', 'vecadd-loop': 'loops', 'vecadd-base': 'baseline'})
-vecadd_hue_order = ['baseline', 'loops', 'loops + 1xSSL', 'loops + 2xSSL', 'loops + 3xSSL']
+vecadd_df['kernel'] = vecadd_df['kernel'].replace({'vecadd-ssr': 'hwloops + W-SSL', 'vecadd-ssr2': 'hwloops + W-SSL + 1xR-SSL', 'vecadd-ssr3': 'hwloops + W-SSL + 2xR-SSL', 'vecadd-loop': 'hwloops (+TMLS)', 'vecadd-base': 'baseline'})
+vecadd_hue_order = ['baseline', 'hwloops (+TMLS)', 'hwloops + W-SSL', 'hwloops + W-SSL + 1xR-SSL', 'hwloops + W-SSL + 2xR-SSL']
 
 #normalize workload size
 norm_val = 64
@@ -76,8 +76,8 @@ for ws in sgemm_df['workload_size'].unique():
     sgemm_df.loc[(sgemm_df['workload_size'] == ws) & (sgemm_df['kernel'] != sgemm_baseline), 'instr_ratio'] = sgemm_base_instrs / sgemm_df['instrs'] 
 
 #change kernel names
-sgemm_df['kernel'] = sgemm_df['kernel'].replace({'sgemm': 'baseline', 'sgemm-ssr': 'loops + 1xSSL', 'sgemm-ssr2': 'loops + 2xSSL', 'sgemm-ssr3': 'loops + 3xSSL', 'sgemm-loop': 'loops'})
-sgemm_hue_order = ['baseline', 'loops', 'loops + 1xSSL', 'loops + 2xSSL', 'loops + 3xSSL']
+sgemm_df['kernel'] = sgemm_df['kernel'].replace({'sgemm': 'baseline', 'sgemm-ssr': 'hwloops + W-SSL', 'sgemm-ssr2': 'hwloops + W-SSL + 1xR-SSL', 'sgemm-ssr3': 'hwloops + W-SSL + 2xR-SSL', 'sgemm-loop': 'hwloops (+TMLS)'})
+sgemm_hue_order = ['baseline', 'hwloops (+TMLS)', 'hwloops + W-SSL', 'hwloops + W-SSL + 1xR-SSL', 'hwloops + W-SSL + 2xR-SSL']
 
 #normalize workload size
 norm_val = 64
@@ -98,7 +98,7 @@ axs[0, 0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 axs[0, 0].set_title('vecadd')
 axs[0, 0].grid()
 #change axis name
-axs[0, 0].set_ylabel('Instructions (#)')
+axs[0, 0].set_ylabel('Instructions')
 axs[0, 0].set_xlabel('Thread Iterations')
 #remove legend
 axs[0, 0].get_legend().remove()
@@ -108,7 +108,7 @@ sns.lineplot(x='workload_size', y='instrs', hue='kernel', hue_order=sgemm_hue_or
 axs[1, 0].set_title('sgemm')
 axs[1, 0].grid()
 #change axis name
-axs[1, 0].set_ylabel('Instructions (#)')
+axs[1, 0].set_ylabel('Instructions')
 axs[1, 0].set_xlabel('Thread Iterations')
 #remove legend
 axs[1, 0].get_legend().remove()
@@ -136,7 +136,7 @@ axs[1, 1].get_legend().remove()
 
 #add common legend
 handles, labels = axs[0, 1].get_legend_handles_labels()
-fig.legend(handles, labels, loc=8, bbox_to_anchor=(0.5, - 0.09), ncol=3)
+fig.legend(handles, labels, loc=8, bbox_to_anchor=(0.5, - 0.17), ncol=2, fontsize='large')
 
 #change font to calibi and increase size
 for ax in axs.flat:
