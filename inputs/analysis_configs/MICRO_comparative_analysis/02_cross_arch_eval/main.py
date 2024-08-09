@@ -3,7 +3,6 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-from matplotlib.patches import PathPatch
 import seaborn as sns
 
 import generic_functions as gf
