@@ -1,0 +1,10 @@
+[project]
+name = "ASPLOS24-plots"
+version = "0.1.0"
+description = "Plots for ASPLOS 24 paper"
+
+[tool.ruff]
+line-length = 100
+
+[tool.black]
+line-length = 100
