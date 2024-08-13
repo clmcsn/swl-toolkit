@@ -6,8 +6,8 @@ import pandas as pd
 
 sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 import common.parsers as parsers  # noqa E402
-import data_analysis as da  # noqa E402
-import plot  # noqa E402
+import src.data_analysis as da  # noqa E402
+import src.plot as plot  # noqa E402
 
 parser = parsers.ParserClass(os.path.dirname(__file__))
 

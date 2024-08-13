@@ -5,7 +5,7 @@ import re
 import sys
 import pandas as pd
 
-import defines as DDEFS
+from . import defines as DDEFS
 sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 from common import data_analysis as cda  # noqa E402
 from common import defines as CDEFS  # noqa E402

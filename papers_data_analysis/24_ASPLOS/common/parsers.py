@@ -38,4 +38,5 @@ class ParserClass(ScriptsParserClass):
 
     def reduce_args(self):
         """Reduce the arguments"""
-        pass
+        self.args.results_dir = os.path.abspath(self.args.results_dir)
+        self.args.plots_dir = os.path.abspath(self.args.plots_dir)
