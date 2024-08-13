@@ -1,15 +1,14 @@
 """Common funtions for data analysis"""
 
 import pandas as pd
-import defines as CDEFS
+from . import defines as CDEFS
 
 
 def merge_for_repeat(df: pd.DataFrame, app: str) -> pd.DataFrame:
     """Merge the dataframes for repeat runs"""
     df_repeat1 = df[df['repeat'] == 1].reset_index(drop=True)
     df_repeat2 = df[df['repeat'] == 2].reset_index(drop=True)
-    df_merged = pd.merge(df_repeat1, df_repeat2,
-                         on=CDEFS.MERGE_ON[app],
+    df_merged = pd.merge(df_repeat1, df_repeat2, on=CDEFS.MERGE_ON[app],
                          suffixes=('_r1', '_r2'))
     # Process metrics
     df_merged['instrs'] = df_merged['instrs_r2'] - df_merged['instrs_r1']

@@ -1,14 +1,15 @@
 import argparse
 
+
 class ScriptsParserClass():
     def __init__(self, args=None):
         self.parser = argparse.ArgumentParser(description='Gets options from command line.')
         self.init_parser()
-        self.args = self.parser.parse_args(args) if args else self.parser.parse_args() 
+        self.args = self.parser.parse_args(args) if args else self.parser.parse_args()
         self.check_args()
         self.init_attr()
         self.reduce_args()
-    
+
     def init_parser(self):
         raise NotImplementedError
 

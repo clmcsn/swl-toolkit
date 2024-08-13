@@ -1,18 +1,20 @@
 """Main script to plot the instruction"""
 
 import os
+import sys
 import pandas as pd
 
-from ..common import parsers
-from . import data_analysis as da
-from . import plot
+sys.path.append(os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
+import common.parsers as parsers  # noqa E402
+import data_analysis as da  # noqa E402
+import plot  # noqa E402
 
-parser = parsers.ParserClass()
+parser = parsers.ParserClass(os.path.dirname(__file__))
 
 df = pd.DataFrame()
 for d in os.listdir(parser.args.results_dir):
     d = os.path.join(parser.args.results_dir, d)
-    if d == parser.args.plots_dir:
+    if os.path.samefile(d, parser.args.plots_dir):
         continue
     app = d.split("/")[-1]
     df = pd.concat([df, da.get_dataframe(d, app)])

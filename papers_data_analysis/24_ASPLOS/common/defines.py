@@ -1,8 +1,8 @@
 """ Constants used across all scripts in this directory. """
 
 DF_FNAME = 'dataframe.feather'
-RES_DIR = './outputs/'
-PLOT_DIR = './outputs/plots/'
+RES_DIR = 'output/'
+PLOT_DIR = 'output/plots/'
 
 # #####################################################################
 # Merge is needed for obtaining results 2xrepetitions vs 1xrepetition

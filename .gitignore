@@ -129,6 +129,10 @@ dmypy.json
 .pyre/
 
 **/outputs/
+**/results/
+**/logs/
+**/data/
+**/output/
 *.cache
 *.log
 *.bkp

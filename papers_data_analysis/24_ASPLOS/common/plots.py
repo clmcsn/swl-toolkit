@@ -1,6 +1,9 @@
 """Common plotting functions for ASPLOS paper."""
 
 # Adding the freaking calibri font
-from matplotlib import font_manager
-FONT_PATH = '~/calibri-font-family/calibri-regular.ttf'
-font_manager.fontManager.addfont(FONT_PATH)
+import os
+
+
+FONT_PATH = os.path.join(os.path.expanduser('~'), 'calibri-font-family/calibri-regular.ttf')
+CM = 1/2.54  # cm to inch
+FORMATS = ['pdf', 'png', 'svg']
