@@ -11,5 +11,5 @@ DFS = $(patsubst %,%/$(RES_DF_FNAME),$(RES_DIRS))
 all: $(PLOT_DIR)/$(PLOT_NAME).pdf
 
 $(PLOT_DIR)/$(PLOT_NAME).pdf: $(DFS)
-	python3 main.py -r $(RES_ROOT) -p $(PLOT_DIR)
+	python3 main.py -r $(RES_ROOT) -p $(PLOT_DIR) --figure_name $(PLOT_NAME)
 	

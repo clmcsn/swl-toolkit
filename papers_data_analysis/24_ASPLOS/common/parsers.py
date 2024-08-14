@@ -21,12 +21,15 @@ class ParserClass(ScriptsParserClass):
                                  help='Results directory')
         self.parser.add_argument('-p', '--plots_dir', action='store', type=str,
                                  help='Plots directory')
+        self.parser.add_argument('--figure_name', action='store', type=str,
+                                 help='Figure name')
         self.set_defaults()
 
     def set_defaults(self):
         """Set default values"""
         self.parser.set_defaults(results_dir=os.path.join(self.caller_path, CDEFS.RES_DIR))
         self.parser.set_defaults(plots_dir=os.path.join(self.caller_path, CDEFS.PLOT_DIR))
+        self.parser.set_defaults(figure_name=CDEFS.FIG_NAME)
 
     def check_args(self):
         """Check if the arguments are valid"""

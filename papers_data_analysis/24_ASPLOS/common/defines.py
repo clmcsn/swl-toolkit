@@ -3,6 +3,7 @@
 DF_FNAME = 'dataframe.feather'
 RES_DIR = 'output/'
 PLOT_DIR = 'output/plots/'
+FIG_NAME = 'figure'
 
 # #####################################################################
 # Merge is needed for obtaining results 2xrepetitions vs 1xrepetition

@@ -1,4 +1,4 @@
-"""Main script to plot the instruction"""
+"""Main script to plot the cycle bars"""
 
 import os
 import sys
@@ -19,4 +19,5 @@ for d in os.listdir(parser.args.results_dir):
     app = d.split("/")[-1]
     df = pd.concat([df, da.get_dataframe(d, app)])
 df = df.reset_index(drop=True)
-plot.gen_plot(df, parser.args.plots_dir, parser.args.figure_name)
+df = da.make_avg_df(df)
+plot.gen_plot(df, parser.args.plots_dir)

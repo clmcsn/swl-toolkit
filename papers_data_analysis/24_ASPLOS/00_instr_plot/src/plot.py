@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import font_manager
@@ -15,11 +16,10 @@ Y_SIZE = SCALE*CPLT.CM/3.2
 HUE_ORDER = ['baseline', 'hwloops (+TMLS)', 'hwloops + W-SSL',
              'hwloops + W-SSL + 1xR-SSL', 'hwloops + W-SSL + 2xR-SSL']
 LINEWIDTH = 1.8
-FIGURE_FNAME = "05_00_INSTR"
 font_manager.fontManager.addfont(CPLT.FONT_PATH)
 
 
-def gen_plot(df, plots_dir):
+def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     """
         Generate the plot for Figure 0
         Plots is a 2x2 grid with instructions and instruction ratio for vecadd and sgemm
@@ -33,7 +33,7 @@ def gen_plot(df, plots_dir):
     sns.lineplot(ax=axs[0, 0], data=vecadd_df, x='workload_size', y='instrs',
                  hue='kernel', hue_order=HUE_ORDER, style='kernel', style_order=HUE_ORDER,
                  linewidth=LINEWIDTH)
-    axs[0, 0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+    axs[0, 0].ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
     axs[0, 0].set_title('vecadd')
     axs[0, 0].grid()
     axs[0, 0].set_ylabel('Instructions')
@@ -85,6 +85,6 @@ def gen_plot(df, plots_dir):
 
     # Save the plot ################################################
     for fmt in CPLT.FORMATS:
-        plt.savefig(os.path.join(plots_dir, FIGURE_FNAME + '.' + fmt),
+        plt.savefig(os.path.join(plots_dir, figure_name + '.' + fmt),
                     bbox_inches='tight', format=fmt, pad_inches=0)
     plt.close()
