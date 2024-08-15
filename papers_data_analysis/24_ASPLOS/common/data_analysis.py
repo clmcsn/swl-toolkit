@@ -17,8 +17,10 @@ def merge_for_repeat(df: pd.DataFrame, app: str) -> pd.DataFrame:
     if "workload_size_y" in df_merged.columns:
         df_merged['workload_size'] = (df_merged['workload_size_x'] *
                                       df_merged['workload_size_y'])
+    # Remove outliers ################################################
+    df_merged['cycles'] = df_merged['cycles'].mask(df_merged['cycles'] <= 0).ffill()
     # Compute the ratio of instructions and cycles
-    df_merged['instr_ratio'] = 1
+    df_merged['instrs_ratio'] = 1
     df_merged['cycles_ratio'] = 1
     for ws in df_merged['workload_size'].unique():
         base_df = df_merged[(df_merged['workload_size'] == ws) &
@@ -27,14 +29,10 @@ def merge_for_repeat(df: pd.DataFrame, app: str) -> pd.DataFrame:
         base_cycles = base_df['cycles'].values[0]
         df_merged.loc[(df_merged['workload_size'] == ws)
                       & (df_merged['kernel'] != CDEFS.BASE_KERNELS[app]),
-                      'instr_ratio'] = base_instrs / df_merged['instrs']
+                      'instrs_ratio'] = base_instrs / df_merged['instrs']
         df_merged.loc[(df_merged['workload_size'] == ws)
                       & (df_merged['kernel'] != CDEFS.BASE_KERNELS[app]),
                       'cycles_ratio'] = base_cycles / df_merged['cycles']
-    # Remove outliers ################################################
-    # TODO: Implement outlier removal
-    # ###############################################################
-
     # Normalize workload size
     hw_norm_val = (df_merged['cores'].unique()[0] *
                    df_merged['threads'].unique()[0] *

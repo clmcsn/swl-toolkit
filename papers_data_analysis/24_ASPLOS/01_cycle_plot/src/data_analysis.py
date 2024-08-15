@@ -53,7 +53,10 @@ def make_avg_df(df: pd.DataFrame) -> pd.DataFrame:
                     continue
                 cycle_avg = df[(df['app'] == app) & (df['kernel'] == kernel)]['cycles_ratio'].mean()
                 instr_avg = df[(df['app'] == app) & (df['kernel'] == kernel)]['instrs_ratio'].mean()
-                avg_df = avg_df.append({'app': app, 'kernel': kernel, 'cycles_ratio': cycle_avg,
-                                        'instrs_ratio': instr_avg, 'threads': threads},
-                                       ignore_index=True)
+                avg_df = pd.concat([avg_df, pd.DataFrame({'app': [app],
+                                                          'kernel': [kernel],
+                                                          'threads': [threads],
+                                                          'cycles_ratio': [cycle_avg],
+                                                          'instrs_ratio': [instr_avg]})])
+                avg_df = avg_df.reset_index(drop=True)
     return avg_df

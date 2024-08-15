@@ -13,6 +13,7 @@ parser = parsers.ParserClass(os.path.dirname(__file__))
 
 df = pd.DataFrame()
 for d in os.listdir(parser.args.results_dir):
+    print("Processing: ", d)
     d = os.path.join(parser.args.results_dir, d)
     if os.path.samefile(d, parser.args.plots_dir):
         continue
@@ -20,4 +21,4 @@ for d in os.listdir(parser.args.results_dir):
     df = pd.concat([df, da.get_dataframe(d, app)])
 df = df.reset_index(drop=True)
 df = da.make_avg_df(df)
-plot.gen_plot(df, parser.args.plots_dir)
+plot.gen_plot(df, parser.args.plots_dir, parser.args.figure_name)

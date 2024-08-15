@@ -45,6 +45,6 @@ BASE_KERNELS = {
     "sgemm":  "sgemm",
     "sfilter": "sfilter",
     "saxpy": "saxpy",
-    "knn": "knn",
-    "conv2d": "conv2d"
+    "knn": "knn-asm",
+    "conv2d": "conv2d-asm"
 }

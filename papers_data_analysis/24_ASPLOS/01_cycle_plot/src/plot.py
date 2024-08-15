@@ -22,6 +22,7 @@ Y_SIZE = X_SIZE*ASPECT_RATIO
 font_manager.fontManager.addfont(CPLT.FONT_PATH)
 
 APPS = ['vecadd', 'saxpy', 'sgemm', 'knn', 'sfilter', 'conv2d']
+APPS = [x + '-airbender' for x in APPS]
 THREADS = [8, 16, 32]
 TITLES = ['vecadd\nvlen→[4:160:1.5]',
           'saxpy\nvlen→[4:160:1.5]',

@@ -51,7 +51,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     axs[1, 0].get_legend().remove()
 
     # Plot instruction ratio for vecadd ################################################
-    sns.lineplot(ax=axs[0, 1], data=vecadd_df, x='workload_size', y='instr_ratio',
+    sns.lineplot(ax=axs[0, 1], data=vecadd_df, x='workload_size', y='instrs_ratio',
                  hue='kernel', hue_order=HUE_ORDER, style='kernel', style_order=HUE_ORDER,
                  linewidth=LINEWIDTH)
     axs[0, 1].set_title('vecadd')
@@ -61,7 +61,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     axs[0, 1].get_legend().remove()
 
     # Plot instruction ratio for sgemm ################################################
-    sns.lineplot(ax=axs[1, 1], data=sgemm_df, x='workload_size', y='instr_ratio',
+    sns.lineplot(ax=axs[1, 1], data=sgemm_df, x='workload_size', y='instrs_ratio',
                  hue='kernel', hue_order=HUE_ORDER, style='kernel', style_order=HUE_ORDER,
                  linewidth=LINEWIDTH)
     axs[1, 1].set_title('sgemm')
