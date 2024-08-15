@@ -17,6 +17,7 @@ def merge_for_repeat(df: pd.DataFrame, app: str) -> pd.DataFrame:
     if "workload_size_y" in df_merged.columns:
         df_merged['workload_size'] = (df_merged['workload_size_x'] *
                                       df_merged['workload_size_y'])
+    df_merged = df_merged.sort_values(by=['kernel', 'workload_size'])
     # Remove outliers ################################################
     df_merged['cycles'] = df_merged['cycles'].mask(df_merged['cycles'] <= 0).ffill()
     # Compute the ratio of instructions and cycles

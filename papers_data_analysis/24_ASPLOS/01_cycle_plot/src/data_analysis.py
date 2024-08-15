@@ -28,7 +28,7 @@ def replace_kernel_names(app: str) -> str:
     elif re.match(r'.*-ssr3', app):
         return '+3xSSL'
     elif re.match(r'.*-loop', app):
-        return 'hwloops'
+        return 'loops'
     else:  # default
         return 'baseline'
 
@@ -51,8 +51,10 @@ def make_avg_df(df: pd.DataFrame) -> pd.DataFrame:
             for threads in df['threads'].unique():
                 if kernel == 'baseline':
                     continue
-                cycle_avg = df[(df['app'] == app) & (df['kernel'] == kernel)]['cycles_ratio'].mean()
-                instr_avg = df[(df['app'] == app) & (df['kernel'] == kernel)]['instrs_ratio'].mean()
+                cycle_avg = df[(df['app'] == app) & (df['kernel'] == kernel) 
+                               & (df['threads'] == threads)]['cycles_ratio'].mean()
+                instr_avg = df[(df['app'] == app) & (df['kernel'] == kernel) 
+                               & (df['threads'] == threads)]['instrs_ratio'].mean()
                 avg_df = pd.concat([avg_df, pd.DataFrame({'app': [app],
                                                           'kernel': [kernel],
                                                           'threads': [threads],

@@ -75,6 +75,8 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
                 ax.set_title(TITLES[i])
             if i == 0:
                 ax.set_ylabel(AXES[j])
+            else:
+                ax.set_ylabel('')
             ax.set_ylim(0, y_axis_lim)
             for t in ax.get_xticklabels():
                 t.set_rotation(XTICK_TILT)
