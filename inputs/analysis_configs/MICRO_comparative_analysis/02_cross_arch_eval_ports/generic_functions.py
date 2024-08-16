@@ -42,6 +42,9 @@ def make_summary_df(df):
                 "dcache_bank_stalls" :      [df[df['dcache_ports'] == t]['dcache_bank_stalls'].mean()],
                 "dcache_bank_utilization" : [df[df['dcache_ports'] == t]['dcache_bank_utilization'].mean()]
         }), sum_df])
+    if df['app'].unique()[0] == 'saxpy':
+        print(sum_df)
+        print(df)
     #normalize over maximum
     sum_df['cycles'] = sum_df['cycles']/sum_df['cycles'].max()
     sum_df['ssr_stalls'] = sum_df['ssr_stalls']/sum_df['ssr_stalls'].max()
