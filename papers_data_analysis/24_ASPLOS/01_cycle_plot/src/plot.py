@@ -1,4 +1,4 @@
-"""Plotting Figure 0"""
+"""Plotting Figure 1"""
 
 import os
 import sys
