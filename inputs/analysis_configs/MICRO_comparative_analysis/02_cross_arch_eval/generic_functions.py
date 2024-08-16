@@ -10,7 +10,8 @@ def gen_df(path, benchmark):
     df_r2 = df[df['repeat'] == 2].reset_index(drop=True)
 
     df = pd.merge(df_r1, df_r2, on=merge_list+sf.s_merge_list[benchmark], suffixes=('_r1', '_r2'))
-    df['cycles'] = df['cycles_r1'] + df['cycles_r2']
+    #df['cycles'] = df['cycles_r1'] + df['cycles_r2']
+    df['cycles'] = df['cycles_r2'] - df['cycles_r1']
     df['instrs'] = df['instrs_r1'] + df['instrs_r2']
     df['ssr_stalls'] = df['ssr_stalls_r1'] + df['ssr_stalls_r2']
     df['dcache_bank_stalls'] = df['dcache_bank_stalls_r1'] + df['dcache_bank_stalls_r2']

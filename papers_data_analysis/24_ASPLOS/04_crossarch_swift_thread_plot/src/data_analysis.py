@@ -20,15 +20,15 @@ def get_app_name(dir_name: str) -> str:
 
 def make_summary(df: pd.DataFrame) -> pd.DataFrame:
     """Make the summary dataframe"""
-    port_number = df['dcache_ports'].unique()[0]
-    area = DDEFS.AREA[DDEFS.AREA['dcache_ports'] == port_number]['area'].values[0]
+    port_number = df['threads'].unique()[0]
+    area = DDEFS.AREA[DDEFS.AREA['threads'] == port_number]['area'].values[0]
     sdf = pd.DataFrame({
         "app": [df['app'].unique()[0]],
-        "dcache_ports": [port_number],
+        "threads": [port_number],
         "cycles": [df['cycles'].mean()],
         "area_x_cycles": [df['cycles'].mean() * area],
-        "ssr_stalls": [df['ssr_stalls'].mean()],
-        "dcache_bank_stalls": [df['dcache_bank_stalls'].mean()],
+        # "ssr_stalls": [df['ssr_stalls'].mean()],
+        # "dcache_bank_stalls": [df['dcache_bank_stalls'].mean()],
     })
     return sdf
 
@@ -39,7 +39,7 @@ def get_dataframe(path: str, dir_name: str) -> pd.DataFrame:
     df = pd.read_feather(df_file)
     app = get_app_name(dir_name)
     df = cda.merge_for_repeat(df, app, ratio=False)
-    df = df.sort_values(by=['dcache_ports', 'workload_size']).reset_index(drop=True)
+    df = df.sort_values(by=['threads', 'workload_size']).reset_index(drop=True)
     # remove _airbender form app name
     df['app'] = df['app'].str.replace('-airbender', '')
     df = make_summary(df)
@@ -52,10 +52,6 @@ def normalize(df: pd.DataFrame) -> pd.DataFrame:
         # normalize over maximum across all ports
         df.loc[df['app'] == app, 'cycles'] = df[df['app'] == app]['cycles'] / \
             df[df['app'] == app]['cycles'].max()
-        df.loc[df['app'] == app, 'ssr_stalls'] = df[df['app'] == app]['ssr_stalls'] / \
-            df[df['app'] == app]['ssr_stalls'].max()
-        df.loc[df['app'] == app, 'dcache_bank_stalls'] = df[df['app'] == app]['dcache_bank_stalls']\
-            / df[df['app'] == app]['dcache_bank_stalls'].max()
         df.loc[df['app'] == app, 'area_x_cycles'] = df[df['app'] == app]['area_x_cycles'] / \
             df[df['app'] == app]['area_x_cycles'].max()
 
