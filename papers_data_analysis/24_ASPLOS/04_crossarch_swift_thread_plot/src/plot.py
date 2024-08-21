@@ -37,7 +37,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     font_manager.fontManager.addfont(CPLT.FONT_PATH)
     for metric in ['cycles', 'area_x_cycles']:
         sns.catplot(x="app", y=metric, hue="threads", data=df, kind="bar",
-                    height=HEIGHT, aspect=ASPECT_RATIO, width=WIDTH, legend=True)
+                    height=HEIGHT, aspect=ASPECT_RATIO, width=WIDTH, legend=False)
         plt.ylabel(PLOT_LABELS[metric], FONT_PROPERTIES)
         plt.yticks(fontproperties=FONT_PROPERTIES)
         plt.xlabel('', FONT_PROPERTIES)
