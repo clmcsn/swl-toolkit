@@ -14,9 +14,12 @@ $(info $(RES))
 
 all: $(PLOT_DIR)/$(PLOT_NAME).pdf
 
+# Create directories for each experiment (otherwise realpath will fail in the following rules)
+$(RES_ROOT)/%/:
+	mkdir -p $@
+
 # Checkpoint file depends on the input configuration file, that has the same name as the final $(RES)
-$(RES_ROOT)/%/checkpoint.feather: $(INPUT_DIR)/$(basename %).yml
-	@mkdir -p $(@D)
+$(RES_ROOT)/%/checkpoint.feather: $(INPUT_DIR)/$(basename %).yml $(RES_ROOT)/%/
 	cd $(SCRIPT_HOME) && APP=vortex-run python3 launch.py -f $(realpath $<) -o $(realpath $(dir $@)) -p /vx/
 
 # Dataframe depends on the checkpoint file, which indicates that the experiment has been run
