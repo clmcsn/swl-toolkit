@@ -19,8 +19,6 @@ ASPECT_RATIO = 1/2
 X_SIZE = (2*8.45 + 0.83)*SCALE*CPLT.CM
 Y_SIZE = X_SIZE*ASPECT_RATIO
 
-font_manager.fontManager.addfont(CPLT.FONT_PATH)
-
 APPS = ['vecadd', 'saxpy', 'sgemm', 'knn', 'sfilter', 'conv2d']
 APPS = [x + '-airbender' for x in APPS]
 THREADS = [8, 16, 32]
@@ -58,6 +56,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         Plots is a 3x6 grid with cycles and instruction ratio for all benchmarks
         Legend is common for all plots and is placed at the bottom of the figure
     """
+    CPLT.load_font(CPLT.FONT_PATH)
     fig, axs = plt.subplots(3, 6, figsize=(X_SIZE, Y_SIZE))
     for i, app in enumerate(APPS):
         data = df[df['app'] == app]

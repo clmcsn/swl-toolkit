@@ -29,8 +29,8 @@ def merge_for_repeat(df: pd.DataFrame, app: str, ratio: bool = True) -> pd.DataF
         df_merged['dcache_bank_stalls'] <= 0).ffill()
     if ratio:
         # Compute the ratio of instructions and cycles
-        df_merged['instrs_ratio'] = 1
-        df_merged['cycles_ratio'] = 1
+        df_merged['instrs_ratio'] = 1.0
+        df_merged['cycles_ratio'] = 1.0
         for ws in df_merged['workload_size'].unique():
             base_df = df_merged[(df_merged['workload_size'] == ws) &
                                 (df_merged['kernel'] == CDEFS.BASE_KERNELS[app])]

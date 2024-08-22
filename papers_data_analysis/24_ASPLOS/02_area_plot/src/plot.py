@@ -22,7 +22,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         Plots is a 3x6 grid with cycles and instruction ratio for all benchmarks
         Legend is common for all plots and is placed at the bottom of the figure
     """
-    font_manager.fontManager.addfont(CPLT.FONT_PATH)
+    CPLT.load_font(CPLT.FONT_PATH)
     fig, axs = plt.subplots(1, 2, figsize=(X_SIZE, Y_SIZE))
 
     sns.lineplot(x='cfg', y='area', hue='ports',

@@ -1,4 +1,5 @@
 PLOT_NAME = Figure_9
-RES = ASPLOS-COMP-sgemm-im-1C2c4w8t ASPLOS-COMP-vecadd-im-1C2c4w8t
+INPUT_DIR ?= ./inputs
+RES = $(shell ls $(INPUT_DIR) | grep -oP '.*(?=\.yml)')
 
 include ../common.mk

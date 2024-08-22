@@ -37,7 +37,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         Generate the plot for Figure 12
         Plots generates 4 different images for each metric
     """
-    font_manager.fontManager.addfont(CPLT.FONT_PATH)
+    CPLT.load_font(CPLT.FONT_PATH)
     for metric in ['cycles', 'area_x_cycles', 'ssr_stalls', 'dcache_bank_stalls']:
         sns.catplot(x="app", y=metric, hue="dcache_ports", data=df, kind="bar",
                     height=HEIGHT, aspect=ASPECT_RATIO, width=WIDTH, legend=False)

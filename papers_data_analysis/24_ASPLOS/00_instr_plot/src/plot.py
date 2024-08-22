@@ -16,7 +16,6 @@ Y_SIZE = SCALE*CPLT.CM/3.2
 HUE_ORDER = ['baseline', 'hwloops (+TMLS)', 'hwloops + W-SSL',
              'hwloops + W-SSL + 1xR-SSL', 'hwloops + W-SSL + 2xR-SSL']
 LINEWIDTH = 1.8
-font_manager.fontManager.addfont(CPLT.FONT_PATH)
 
 
 def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
@@ -25,6 +24,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         Plots is a 2x2 grid with instructions and instruction ratio for vecadd and sgemm
         Legend is common for all plots and is placed at the bottom of the figure
     """
+    CPLT.load_font(CPLT.FONT_PATH)
     fig, axs = plt.subplots(2, 2, figsize=(X_SIZE, Y_SIZE))
     vecadd_df = df[df['app'] == 'vecadd-airbender']
     sgemm_df = df[df['app'] == 'sgemm-airbender']
@@ -75,12 +75,13 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     fig.legend(handles, labels, loc=8, bbox_to_anchor=(0.5, - 0.17), ncol=2, fontsize='large')
 
     # Change font to Calibri and increase size ################################################
-    for ax in axs.flat:
-        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
-                     ax.get_xticklabels() + ax.get_yticklabels()):
-            item.set_fontname('Calibri')
-            size = item.get_fontsize()
-            item.set_fontsize(size * 1.3)
+    if os.path.isfile(CPLT.FONT_PATH):
+        for ax in axs.flat:
+            for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                         ax.get_xticklabels() + ax.get_yticklabels()):
+                item.set_fontname('Calibri')
+                size = item.get_fontsize()
+                item.set_fontsize(size * 1.3)
     plt.tight_layout()
 
     # Save the plot ################################################

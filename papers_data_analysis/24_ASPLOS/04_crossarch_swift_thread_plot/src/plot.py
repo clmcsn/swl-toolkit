@@ -34,7 +34,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         Generate the plot for Figure 13
         Plots generates 2 different images for cycle and area-delay product
     """
-    font_manager.fontManager.addfont(CPLT.FONT_PATH)
+    CPLT.load_font(CPLT.FONT_PATH)
     for metric in ['cycles', 'area_x_cycles']:
         sns.catplot(x="app", y=metric, hue="threads", data=df, kind="bar",
                     height=HEIGHT, aspect=ASPECT_RATIO, width=WIDTH, legend=False)
