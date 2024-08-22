@@ -5,7 +5,6 @@ import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib import font_manager
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from common import plots as CPLT # noqa E402

@@ -1,0 +1,47 @@
+app: saxpy-airbender
+clusters: 1
+cores: 4
+dcache_banks: 16
+dcache_ports: 3
+dcache_size: 4194304
+driver: simx
+kernel:
+- saxpy-ssr3
+l2cache: true
+optimize: '-1'
+repeat:
+- 1
+- 2
+ssr_credits: 16
+threads: 4
+warps: 8
+workload_size:
+- 512
+- 762
+- 1012
+- 1262
+- 1512
+- 1762
+- 2012
+- 2262
+- 2512
+- 2762
+- 3012
+- 3262
+- 3512
+- 3762
+- 4012
+- 4262
+- 4512
+- 4762
+- 5012
+- 5262
+- 5512
+- 5762
+- 6012
+- 6262
+- 6512
+- 6762
+- 7012
+- 7262
+- 7512
