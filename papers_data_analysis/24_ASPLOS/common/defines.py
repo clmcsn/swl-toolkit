@@ -36,6 +36,8 @@ MERGE_ON = {
                                   'workload_size_y',
                                   'out_channels',
                                   'in_channels'],
+    "sgemv":   COMMON_MERGE_ON + ['workload_size_x',
+                                  'workload_size_y']
 }
 
 # #####################################################################
@@ -46,5 +48,6 @@ BASE_KERNELS = {
     "sfilter": "sfilter",
     "saxpy": "saxpy",
     "knn": "knn-asm",
-    "conv2d": "conv2d-asm"
+    "conv2d": "conv2d-asm",
+    "sgemv": "sgemv"
 }

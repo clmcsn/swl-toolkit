@@ -51,9 +51,9 @@ def make_avg_df(df: pd.DataFrame) -> pd.DataFrame:
             for threads in df['threads'].unique():
                 if kernel == 'baseline':
                     continue
-                cycle_avg = df[(df['app'] == app) & (df['kernel'] == kernel) 
+                cycle_avg = df[(df['app'] == app) & (df['kernel'] == kernel)
                                & (df['threads'] == threads)]['cycles_ratio'].mean()
-                instr_avg = df[(df['app'] == app) & (df['kernel'] == kernel) 
+                instr_avg = df[(df['app'] == app) & (df['kernel'] == kernel)
                                & (df['threads'] == threads)]['instrs_ratio'].mean()
                 avg_df = pd.concat([avg_df, pd.DataFrame({'app': [app],
                                                           'kernel': [kernel],

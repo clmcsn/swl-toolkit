@@ -51,6 +51,8 @@ from inputs.templates.sfilter_airbender import sfilterAirbenderCmd, sfilterAirbe
 # conv2d-swift ---------------------------------------------------------------------
 from inputs.templates.conv2d_airbender import conv2dAirbenderCmd, conv2dAirbenderDefaults, conv2dAirbenderResFname
 # ----------------------------------------------------------------------------
+# sgemv-swift ---------------------------------------------------------------------
+from inputs.templates.sgemv_airbender import sgemvAirbenderCmd, sgemvAirbenderDefaults, sgemvAirbenderResFname
 
 Map = namedtuple('Map', ['CMD', 'DICT', 'STR'])
 templateDict = {
@@ -69,4 +71,5 @@ templateDict = {
     "knn-airbender" : Map(CMD=[CondorVortexCmdTemplate, knnAirbenderCmd], DICT=knnAirbenderDefaults, STR=knnAirbenderResFname),
     "sfilter-airbender" : Map(CMD=[CondorVortexCmdTemplate, sfilterAirbenderCmd], DICT=sfilterAirbenderDefaults, STR=sfilterAirbenderResFname),
     "conv2d-airbender" : Map(CMD=[CondorVortexCmdTemplate, conv2dAirbenderCmd], DICT=conv2dAirbenderDefaults, STR=conv2dAirbenderResFname),
+    "sgemv-airbender" : Map(CMD=[CondorVortexCmdTemplate, sgemvAirbenderCmd], DICT=sgemvAirbenderDefaults, STR=sgemvAirbenderResFname),
     "aggr-airbender" : Map(CMD=[CondorVortexCmdTemplate, aggrAirbenderCmd], DICT=aggrAirbenderDefaults, STR=aggrAirbenderResFname)}
