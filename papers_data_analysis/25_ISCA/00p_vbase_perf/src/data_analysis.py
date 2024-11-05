@@ -23,5 +23,5 @@ def get_dataframe(path: str, dir_name: str) -> pd.DataFrame:
     df_file = os.path.join(path, CDEFS.DF_FNAME)
     df = pd.read_feather(df_file)
     app = get_app_name(dir_name)
-    df = cda.merge_for_repeat(df, app)
+    df = cda.merge_for_repeat(df, app, ratio=False, hw_norm=False)
     return df

@@ -28,6 +28,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     # divide workload size of sgemv by 8 workload_size_y
     df.loc[df['kernel'] == 'sgemv', 'workload_size'] = df.loc[df['kernel'] == 'sgemv',
                                                               'workload_size'] / 8
+    df['workload_size'] = df['workload_size'] * 32
 
     # Plot the data ################################################
     sns.lineplot(data=df, x='workload_size', y='cycles', hue='kernel',
@@ -53,7 +54,7 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
                          ax.get_xticklabels() + ax.get_yticklabels()):
                 item.set_fontname('Calibri')
                 size = item.get_fontsize()
-                item.set_fontsize(size * 2)
+                item.set_fontsize(size * 2.5)
     plt.tight_layout()
 
     # Save the plot ################################################

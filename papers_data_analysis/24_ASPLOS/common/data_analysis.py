@@ -4,7 +4,8 @@ import pandas as pd
 from . import defines as CDEFS
 
 
-def merge_for_repeat(df: pd.DataFrame, app: str, ratio: bool = True) -> pd.DataFrame:
+def merge_for_repeat(df: pd.DataFrame, app: str, ratio: bool = True,
+                     hw_norm: bool = True) -> pd.DataFrame:
     """Merge the dataframes for repeat runs"""
     df_repeat1 = df[df['repeat'] == 1].reset_index(drop=True)
     df_repeat2 = df[df['repeat'] == 2].reset_index(drop=True)
@@ -43,9 +44,10 @@ def merge_for_repeat(df: pd.DataFrame, app: str, ratio: bool = True) -> pd.DataF
                           & (df_merged['kernel'] != CDEFS.BASE_KERNELS[app]),
                           'cycles_ratio'] = base_cycles / df_merged['cycles']
     # Normalize workload size
-    hw_norm_val = (df_merged['cores'].unique()[0] *
-                   df_merged['threads'].unique()[0] *
-                   df_merged['warps'].unique()[0] *
-                   df_merged['clusters'].unique()[0])
-    df_merged['workload_size'] = df_merged['workload_size'] / hw_norm_val
+    if hw_norm:
+        hw_norm_val = (df_merged['cores'].unique()[0] *
+                       df_merged['threads'].unique()[0] *
+                       df_merged['warps'].unique()[0] *
+                       df_merged['clusters'].unique()[0])
+        df_merged['workload_size'] = df_merged['workload_size'] / hw_norm_val
     return df_merged
