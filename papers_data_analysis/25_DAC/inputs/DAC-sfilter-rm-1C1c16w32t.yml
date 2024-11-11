@@ -7,9 +7,6 @@ dcache_size: 4194304
 driver: simx
 kernel:
 - sfilter-ssr3
-- sfilter-ssr2
-- sfilter-ssr
-- sfilter-loop
 - sfilter
 l2cache: false
 optimize: 1

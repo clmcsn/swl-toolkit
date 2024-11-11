@@ -22,7 +22,7 @@ $(info $(CPS))
 all: $(PLOT_DIR)/$(PLOT_NAME).pdf
 
 # Create directories for each experiment (otherwise realpath will fail in the following rules)
-$(RES_ROOT)/%/:
+$(RES_ROOT)/%:
 	mkdir -p $@
 
 # Checkpoint file depends on the input configuration file, that has the same name as the final $(RES)
