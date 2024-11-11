@@ -51,7 +51,8 @@ BASE_KERNELS = {
     "knn": "knn-asm",
     "conv2d": "conv2d-asm",
     "sgemv": "sgemv",
-    "aggr": "aggr-el-base"
+    "aggr": "aggr-el-base",
+    "gcn-aggr": "aggr-el-base"
 }
 
 # #####################################################################

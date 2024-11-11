@@ -18,22 +18,13 @@ def get_app_name(dir_name: str) -> str:
     raise ValueError('Invalid directory name')
 
 
-def keep_only_base_kernel(df: pd.DataFrame, app: str) -> pd.DataFrame:
-    """Keep only the base kernel"""
-    base_kernel = CDEFS.BASE_KERNELS[app]
-    # replace the kernel name with the base kernel name
-    df['kernel'] = df['kernel'].replace(base_kernel, app)
-    return df[df['kernel'] == app]
-
-
 def get_dataframe(path: str, dir_name: str) -> pd.DataFrame:
     """Get the dataframe from the root path and workload"""
     df_file = os.path.join(path, CDEFS.DF_FNAME)
     df = pd.read_feather(df_file)
     app = get_app_name(dir_name)
-    df = keep_only_base_kernel(df, app)
     df = cda.merge_for_repeat(df, app)
     df = cda.add_flops(df, app)
     df = cda.process_workload_size(df, app)
-
+    df = cda.make_ratios(df, app)
     return df

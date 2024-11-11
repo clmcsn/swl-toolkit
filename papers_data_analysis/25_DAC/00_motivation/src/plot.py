@@ -16,6 +16,7 @@ HUE_ORDER = ['saxpy', 'sgemv', 'sgemm', 'knn', 'sfilter', 'conv2d', 'gcn-aggr']
 MAPPING = {kernel: i for i, kernel in enumerate(HUE_ORDER)}
 LINEWIDTH = 2.5
 
+
 def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     """Generate the plot"""
     CPLT.load_font(CPLT.FONT_PATH)
@@ -23,7 +24,9 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     for k in df['kernel'].unique():
         FLOPs = df[df['kernel'] == k]['flops'].sum()
         cycles = df[df['kernel'] == k]['cycles'].sum()
-        summary_df = pd.concat([summary_df, pd.DataFrame({'kernel': [k], 'FLOPs': [FLOPs], 'cycles': [cycles]})])
+        summary_df = pd.concat([summary_df, pd.DataFrame({'kernel': [k],
+                                                          'FLOPs': [FLOPs],
+                                                          'cycles': [cycles]})])
     summary_df["FLOPs/cycle"] = summary_df["FLOPs"]/summary_df["cycles"]
     summary_df = CDA.make_avg(summary_df, 'FLOPs/cycle')
     summary_df["util"] = summary_df["FLOPs/cycle"]/16*100
