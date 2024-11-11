@@ -64,16 +64,22 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     ax = fig.add_subplot(111, projection='3d')
     ax.bar3d(final_df['w_coord'], final_df['t_coord'], np.zeros_like(final_df['speedup']),
              0.9, 0.9, final_df['speedup'], shade=False, edgecolor='black')
+    # Axis labels and ticks ########################################
     ax.set_xlabel('Warps')
     ax.set_ylabel('Threads')
     ax.set_zlabel('Speedup')
     ax.set_xticks([1.5, 2.5])
-    ax.set_xticklabels([16, 32])
     ax.set_yticks([1.5, 2.5])
-    ax.set_yticklabels([8, 16])
-    ax.grid(True)
+    ax.set_yticklabels([16, 32])
+    ax.set_xticklabels([8, 16])
+    # Set the view angle and zoom ########################################
     ax.view_init(30, 120)
     ax.set_box_aspect(aspect=None, zoom=0.8)
+    # Add bar values ################################################
+    for i in range(len(final_df)):
+        ax.text(final_df['w_coord'].iloc[i]+0.49, final_df['t_coord'].iloc[i]+0.39,
+                final_df['speedup'].iloc[i], '%.1f' % final_df['speedup'].iloc[i],
+                color='black', fontsize=12, ha='center', va='top', fontweight='bold')
 
     # Save the plot ################################################
     for fmt in CPLT.FORMATS:
