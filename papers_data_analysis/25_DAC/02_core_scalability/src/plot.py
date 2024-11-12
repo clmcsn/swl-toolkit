@@ -27,8 +27,6 @@ def gen_outercore_df(df: pd.DataFrame) -> pd.DataFrame:
     # Data preprocessing for core scalability ########################################
     # Remove all dcache_banks <=128
     cdf = df[df['dcache_banks'] > 128]
-    # Remove conv2d 
-    cdf = cdf[~cdf['kernel'].str.contains('conv2d')]
     # Remove all kernels that don't end with '-ssr3
     cdf = cdf[cdf['kernel'].str.endswith('-ssr3')]
     summary_df = pd.DataFrame()
@@ -65,7 +63,8 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     # Remove all kernels that are base kernels
     df = df[~df['kernel'].isin(CDEFS.BASE_KERNELS.values())]
     soc_df = gen_outercore_df(df)
-
+    # remove nan values rows
+    soc_df = soc_df.dropna()
     fig = plt.figure(figsize=(X_SIZE, Y_SIZE))
     # Plotting bar plot with soc_df ########################################
     ax2 = fig.add_subplot(111)

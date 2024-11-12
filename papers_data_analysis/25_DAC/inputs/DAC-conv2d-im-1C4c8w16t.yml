@@ -1,19 +1,22 @@
-app: saxpy-airbender
+app: conv2d-airbender
 clusters: 1
-cores: 32
+cores: 4
 dcache_banks: 1024
 dcache_ports: 3
 dcache_size: 4194304
 driver: simx
+in_channels: 8
 kernel:
-- saxpy-ssr3
-- saxpy
+- conv2d-ssr3
+- conv2d-asm
 l2cache: false
-optimize: '-1'
+optimize: 1
+out_channels: 16
 repeat:
 - 1
 - 2
 ssr_credits: 16
 threads: 16
 warps: 8
-workload_size: "16384:102400:10239"
+workload_size_x: 16
+workload_size_y: "8:100:8"

@@ -40,7 +40,7 @@ def gen_intercore_df(df: pd.DataFrame) -> pd.DataFrame:
                                                                   'threads': [t],
                                                                   'warps': [w],
                                                                   'speedup': [speedup]})])
-    # print(summary_df.to_string())  # for debug purposes
+    print(summary_df.to_string())  # for debug purposes
     final_df = pd.DataFrame()
     for t in summary_df['threads'].unique():
         for w in summary_df['warps'].unique():
@@ -53,7 +53,7 @@ def gen_intercore_df(df: pd.DataFrame) -> pd.DataFrame:
                                                           'speedup': [speedup]})])
     # order the final_df
     final_df = final_df.sort_values(by=['threads', 'warps'])
-    # print(final_df.to_string())  # for debug purposes
+    print(final_df.to_string())  # for debug purposes
     return final_df
 
 

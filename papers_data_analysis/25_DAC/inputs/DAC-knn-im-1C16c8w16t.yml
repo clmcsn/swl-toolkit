@@ -1,13 +1,13 @@
-app: saxpy-airbender
+app: knn-airbender
 clusters: 1
-cores: 32
+cores: 16
 dcache_banks: 1024
 dcache_ports: 3
 dcache_size: 4194304
 driver: simx
 kernel:
-- saxpy-ssr3
-- saxpy
+- knn-ssr3
+- knn-asm
 l2cache: false
 optimize: '-1'
 repeat:
@@ -16,4 +16,4 @@ repeat:
 ssr_credits: 16
 threads: 16
 warps: 8
-workload_size: "16384:102400:10239"
+workload_size: "9192:409600:40959"
