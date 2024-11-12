@@ -6,7 +6,8 @@ PLOT_NAME ?= figure
 INPUT_DIR ?= ../inputs
 RES_ROOT ?= ../output
 RES ?= vecadd
-RES_DIRS ?= $(patsubst %,$(RES_ROOT)/%,$(RES)) 
+RES_DIRS ?= $(patsubst %,$(RES_ROOT)/%,$(RES))
+RES_DIRSS ?= $(patsubst %,$(RES_ROOT)/%/,$(RES))
 RES_DF_FNAME = dataframe.feather
 RES_CP_FNAME = checkpoint.feather
 # Dataframes (DFS) and checkpoints (CPS) for each experiment
@@ -22,7 +23,7 @@ $(info $(CPS))
 all: $(PLOT_DIR)/$(PLOT_NAME).pdf
 
 # Create directories for each experiment (otherwise realpath will fail in the following rules)
-$(RES_ROOT)/%:
+$(RES_ROOT)/%/:
 	mkdir -p $@
 
 # Checkpoint file depends on the input configuration file, that has the same name as the final $(RES)
@@ -36,7 +37,7 @@ $(RES_ROOT)/%/dataframe.feather: $(RES_ROOT)/%/checkpoint.feather
 	cd $(SCRIPT_HOME) && python3 extract.py --mode vortex-run -o $(realpath $(@D))
 
 # Plot depends on all experiment dataframes listed in $(RES) 
-$(PLOT_DIR)/$(PLOT_NAME).pdf: $(RES_DIRS) $(CPS) $(DFS)
+$(PLOT_DIR)/$(PLOT_NAME).pdf: $(RES_DIRSS) $(CPS) $(DFS)
 	python3 main.py -r $(RES_ROOT) -p $(PLOT_DIR) --figure_name $(PLOT_NAME)
 
 .PHONY: clean

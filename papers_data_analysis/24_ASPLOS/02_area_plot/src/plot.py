@@ -32,6 +32,8 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
                  palette='tab10', markersize=MARKERSIZE)
     for tick in axs[0].get_xticklabels():
         tick.set_rotation(30)
+    # force y-axis to go to 1e7
+    axs[0].set_ylim(0.8*1e6, 1.15*1e7)
     axs[0].set_yscale('log')
     axs[0].set_ylabel('Area (mm^2)')
     axs[0].set_xlabel('')

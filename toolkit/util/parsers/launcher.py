@@ -70,7 +70,7 @@ class LauncherParserClass(ScriptsParserClass):
 
 class VortexLauncherParserClass(LauncherParserClass):
     def __init__(self):
-        self.constraints = ["inputs/constraints/vortex_exp_constr.yml"]
+        self.constraints = []#["inputs/constraints/vortex_exp_constr.yml"]
         super(VortexLauncherParserClass, self).__init__()
     
     @staticmethod

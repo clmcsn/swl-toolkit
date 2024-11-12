@@ -4,7 +4,6 @@ import os
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from common import plots as CPLT # noqa E402
@@ -24,65 +23,73 @@ EXTS_MAPPING = {ext: i for i, ext in enumerate(EXTS_ORDER)}
 LINEWIDTH = 2.5
 
 
+def gen_outercore_df(df: pd.DataFrame) -> pd.DataFrame:
+    # Data preprocessing for core scalability ########################################
+    # Remove all dcache_banks <=128
+    cdf = df[df['dcache_banks'] > 128]
+    # Remove conv2d 
+    cdf = cdf[~cdf['kernel'].str.contains('conv2d')]
+    # Remove all kernels that don't end with '-ssr3
+    cdf = cdf[cdf['kernel'].str.endswith('-ssr3')]
+    summary_df = pd.DataFrame()
+    # Makeing speedup summary df, app is at this stage only for debug purposes
+    for app in cdf['app'].unique():
+        for c in cdf['cores'].unique():
+            speedup = cdf[(cdf['cores'] == c) &
+                          (cdf['app'] == app)]['cycles_ratio'].mean()
+            summary_df = pd.concat([summary_df, pd.DataFrame({'app': [app],
+                                                              'cores': [c],
+                                                              'speedup': [speedup]})])
+    print(summary_df.to_string())  # for debug purposes
+    core_df = pd.DataFrame()
+    for c in summary_df['cores'].unique():
+        speedup = summary_df[summary_df['cores'] == c]['speedup'].mean()
+        core_df = pd.concat([core_df, pd.DataFrame({'cores': [c],
+                                                    'speedup': [speedup]})])
+    # order the core_df
+    core_df = core_df.sort_values(by=['cores'])
+    print(core_df.to_string())  # for debug purposes
+    return core_df
+
+
 def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     """Generate the plot"""
     CPLT.load_font(CPLT.FONT_PATH)
 
     # Remove airbender from app name
+    # print all cycles_ratio and workload size value for saxpy-ssr3 kernel
+    # remove cycle_ratios > 100
+    df = df[df['cycles_ratio'] <= 100]
+    df['cores'] = df['cores']*df['clusters']
     df['app'] = df['app'].str.replace('-airbender', '')
     # Remove all kernels that are base kernels
     df = df[~df['kernel'].isin(CDEFS.BASE_KERNELS.values())]
-    # Data preprocessing ########################################
-    summary_df = pd.DataFrame()
-    # Makeing speedup summary df, app is at this stage only for debug purposes
-    for app in df['app'].unique():
-        for t in df['threads'].unique():
-            for w in df['warps'].unique():
-                speedup = df[(df['threads'] == t) &
-                             (df['warps'] == w) &
-                             (df['app'] == app)]['cycles_ratio'].mean()
-                summary_df = pd.concat([summary_df, pd.DataFrame({'app': [app],
-                                                                  'threads': [t],
-                                                                  'warps': [w],
-                                                                  'speedup': [speedup]})])
-    # print(summary_df.to_string())  # for debug purposes
-    final_df = pd.DataFrame()
-    for t in df['threads'].unique():
-        for w in df['warps'].unique():
-            speedup = summary_df[(summary_df['threads'] == t) &
-                                 (summary_df['warps'] == w)]['speedup'].mean()
-            final_df = pd.concat([final_df, pd.DataFrame({'threads': [t],
-                                                          't_coord': [t/16],
-                                                          'warps': [w],
-                                                          'w_coord': [w/8],
-                                                          'speedup': [speedup]})])
-    # order the final_df
-    final_df = final_df.sort_values(by=['threads', 'warps'])
-    # print(final_df.to_string())  # for debug purposes
-    # Plotting 3D bar plot ##################################################
+    soc_df = gen_outercore_df(df)
+
     fig = plt.figure(figsize=(X_SIZE, Y_SIZE))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.bar3d(final_df['w_coord'], final_df['t_coord'], np.zeros_like(final_df['speedup']),
-             0.9, 0.9, final_df['speedup'], shade=False, edgecolor='black')
-    # Axis labels and ticks ########################################
-    ax.set_xlabel('Warps')
-    ax.set_ylabel('Threads')
-    ax.set_zlabel('Speedup')
-    ax.set_xticks([1.5, 2.5])
-    ax.set_yticks([1.5, 2.5])
-    ax.set_yticklabels([16, 32])
-    ax.set_xticklabels([8, 16])
-    # Set the view angle and zoom ########################################
-    ax.view_init(30, 120)
-    ax.set_box_aspect(aspect=None, zoom=0.8)
+    # Plotting bar plot with soc_df ########################################
+    ax2 = fig.add_subplot(111)
+    # plot a bar per core
+    soc_df['c_coord'] = 0
+    for i, c in enumerate(soc_df['cores'].unique()):
+        soc_df.loc[soc_df['cores'] == c, 'c_coord'] = i
+    ax2.bar(soc_df['c_coord'], soc_df['speedup'])
+    ax2.set_xlabel('Cores')
+    # set labels for x-axis as number of cores
+    ax2.set_xticks(range(len(soc_df['cores'].unique())))
+    ax2.set_xticklabels(soc_df['cores'].unique())
+    ax2.set_ylabel('Speedup')
+    ax2.set_title('Multi-core scalability')
     # Add bar values ################################################
-    for i in range(len(final_df)):
-        ax.text(final_df['w_coord'].iloc[i]+0.49, final_df['t_coord'].iloc[i]+0.39,
-                final_df['speedup'].iloc[i], '%.1f' % final_df['speedup'].iloc[i],
-                color='black', fontsize=12, ha='center', va='top', fontweight='bold')
+    for i in range(len(soc_df)):
+        ax2.text(soc_df['c_coord'].iloc[i], soc_df['speedup'].iloc[i],
+                 '%.1f' % soc_df['speedup'].iloc[i], color='black',
+                 fontsize=12, ha='center', va='bottom', fontweight='bold')
+    # Add grid ################################################
+    ax2.grid(axis='y')
 
     # Save the plot ################################################
     for fmt in CPLT.FORMATS:
-        fig.savefig(os.path.join(plots_dir, figure_name + '.' + fmt),
+        fig.savefig(os.path.join(plots_dir, figure_name + '2.' + fmt),
                     bbox_inches='tight', format=fmt, pad_inches=0)
     plt.close()

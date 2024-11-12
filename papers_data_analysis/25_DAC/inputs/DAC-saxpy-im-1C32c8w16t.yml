@@ -1,6 +1,6 @@
 app: saxpy-airbender
-clusters: 1
-cores: 32
+clusters: 2
+cores: 16
 dcache_banks: 1024
 dcache_ports: 3
 dcache_size: 4194304
