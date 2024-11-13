@@ -14,7 +14,7 @@ from . import defines as DEFS # noqa E402
 
 SCALE = 5*8.45
 X_SIZE = SCALE*CPLT.CM/3.2
-Y_SIZE = SCALE*CPLT.CM/10
+Y_SIZE = SCALE*CPLT.CM/9.4
 KERNEL_ORDER = ['saxpy', 'sgemv', 'sgemm', 'knn', 'sfilter', 'conv2d', 'gcn-aggr', 'mean']
 KERNEL_MAPPING = {kernel: i for i, kernel in enumerate(KERNEL_ORDER)}
 
@@ -61,6 +61,17 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
                                                               'cycles': [cycles],
                                                               'speedup': [speedup],
                                                               'ired': [ired]})])
+            if app == 'gcn-aggr':
+                summary_df = pd.concat([summary_df, pd.DataFrame({'app': [app, app, app],
+                                                                  'kernel': ['gcn-aggr-ssr',
+                                                                             'gcn-aggr-ssr2',
+                                                                             'gcn-aggr-ssr3'],
+                                                                  'FLOPs': [FLOPs, FLOPs, FLOPs],
+                                                                  'cycles': [cycles, cycles,
+                                                                             cycles],
+                                                                  'speedup': [speedup, speedup,
+                                                                              speedup],
+                                                                  'ired': [ired, ired, ired]})])
     summary_df["FLOPs/cycle"] = summary_df["FLOPs"]/summary_df["cycles"]
     summary_df["exts"] = summary_df.apply(gen_exts, axis=1)
     # Remove Nan values
@@ -92,8 +103,8 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
         multiplier = 0
         for ext in summary_df['exts'].unique():
             ixp = x_placements.copy()
-            if not ext == 'CFM only':
-                ixp = np.delete(ixp, -2)
+            # if not ext == 'CFM only':
+            #     ixp = np.delete(ixp, -2)
             ext_df = summary_df[summary_df['exts'] == ext]
             ext_df = ext_df.sort_values(by=['app'], key=lambda x: x.map(KERNEL_MAPPING))
             offset = width * multiplier

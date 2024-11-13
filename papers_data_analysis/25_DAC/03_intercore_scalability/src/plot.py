@@ -79,13 +79,13 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     # Axis labels and ticks ########################################
     ax.set_xlabel('Warps')
     ax.set_ylabel('Threads')
-    ax.set_zlabel('Speedup')
+    ax.set_zlabel('Avg. Speedup')
     ax.set_xticks([1.5, 2.5])
     ax.set_yticks([1.5, 2.5])
     ax.set_yticklabels([16, 32])
     ax.set_xticklabels([8, 16])
     # Add title as text ################################################
-    ax.text(1.5, 2.5, 15, 'Inter-core scalability', color='black',
+    ax.text(1.5, 2.5, 15, 'Sub-core scalability', color='black',
             fontsize=12, ha='center', va='center')
     # Set the view angle and zoom ########################################
     ax.view_init(30, 120)

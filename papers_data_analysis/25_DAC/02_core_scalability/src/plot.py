@@ -12,8 +12,8 @@ from common import defines as CDEFS # noqa E402
 from . import defines as DEFS # noqa E402
 
 SCALE = 5*8.45
-X_SIZE = SCALE*CPLT.CM/3.2
-Y_SIZE = SCALE*CPLT.CM/3.2
+X_SIZE = SCALE*CPLT.CM/3.2/1.6
+Y_SIZE = SCALE*CPLT.CM/3.2/1.6
 KERNEL_ORDER = ['saxpy', 'sgemv', 'sgemm', 'knn', 'sfilter', 'conv2d', 'gcn-aggr', 'mean']
 KERNEL_MAPPING = {kernel: i for i, kernel in enumerate(KERNEL_ORDER)}
 
@@ -60,6 +60,8 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     df = df[df['cycles_ratio'] <= 100]
     df['cores'] = df['cores']*df['clusters']
     df['app'] = df['app'].str.replace('-airbender', '')
+    # remove conv2d from the kernels
+    df = df[df['app'] != 'conv2d']
     # Remove all kernels that are base kernels
     df = df[~df['kernel'].isin(CDEFS.BASE_KERNELS.values())]
     soc_df = gen_outercore_df(df)
@@ -77,11 +79,11 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     # set labels for x-axis as number of cores
     ax2.set_xticks(range(len(soc_df['cores'].unique())))
     ax2.set_xticklabels(soc_df['cores'].unique())
-    ax2.set_ylabel('Speedup')
-    ax2.set_title('Multi-core scalability')
+    ax2.set_ylabel('Avg. Speedup')
+    ax2.set_title('Platform scalability')
     # Add bar values ################################################
     for i in range(len(soc_df)):
-        ax2.text(soc_df['c_coord'].iloc[i], soc_df['speedup'].iloc[i],
+        ax2.text(soc_df['c_coord'].iloc[i], soc_df['speedup'].iloc[i]/2,
                  '%.1f' % soc_df['speedup'].iloc[i], color='black',
                  fontsize=12, ha='center', va='bottom', fontweight='bold')
     # Add grid ################################################
