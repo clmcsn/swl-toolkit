@@ -3,8 +3,8 @@
 import os
 import sys
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from common import plots as CPLT # noqa E402
@@ -59,4 +59,3 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
                                                       'ired': [ired]})])
     final_df.sort_values(by='unrolling_factor', inplace=True)
     print(final_df.to_string())
-

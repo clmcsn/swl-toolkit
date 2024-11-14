@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-APP_NAMES = ['sgemm', 'saxpy', 'sgemv', 'sfilter', 'conv2d', 'knn', 'aggr']
+APP_NAMES = ['sgemm', 'saxpy', 'sgemv', 'sfilter']
 
 AREA = pd.DataFrame({
     "clusters": [1, 2, 4, 8],

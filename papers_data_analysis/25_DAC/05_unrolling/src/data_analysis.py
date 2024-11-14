@@ -20,7 +20,10 @@ def get_app_name(dir_name: str) -> str:
 
 def add_unrolling_factor(df: pd.DataFrame, dir_name: str) -> pd.DataFrame:
     """Add the unrolling factor to the dataframe"""
-    unrolling_factor = int(dir_name.split('-')[-1][1:])
+    try:
+        unrolling_factor = int(dir_name.split('-')[-1][1:])
+    except ValueError:
+        unrolling_factor = 1
     df['unrolling_factor'] = unrolling_factor
     return df
 

@@ -18,13 +18,37 @@ def get_app_name(dir_name: str) -> str:
     raise ValueError('Invalid directory name')
 
 
+def make_ratios(df_merged: pd.DataFrame) -> pd.DataFrame:
+    # Compute the ratio of instructions and cycles
+    df_merged['instrs_ratio'] = 1.0
+    df_merged['cycles_ratio'] = 1.0
+    for app in df_merged['app'].unique():
+        cdf = df_merged.loc[df_merged['app'] == app]
+        for ws in cdf['workload_size'].unique():
+            base_df = df_merged[(df_merged['workload_size'] == ws) &
+                                (df_merged['cores'] == 1) &
+                                (df_merged['app'] == app)]
+            base_instrs = base_df['instrs'].values[0]
+            base_cycles = base_df['cycles'].values[0]
+            df_merged.loc[(df_merged['workload_size'] == ws) &
+                          (df_merged['cores'] != 1) &
+                          (df_merged['app'] == app),
+                          'instrs_ratio'] = base_instrs / df_merged['instrs']
+            df_merged.loc[(df_merged['workload_size'] == ws) &
+                          (df_merged['cores'] != 1) &
+                          (df_merged['app'] == app),
+                          'cycles_ratio'] = base_cycles / df_merged['cycles']
+    return df_merged
+
+
 def get_dataframe(path: str, dir_name: str) -> pd.DataFrame:
     """Get the dataframe from the root path and workload"""
     df_file = os.path.join(path, CDEFS.DF_FNAME)
     df = pd.read_feather(df_file)
     app = get_app_name(dir_name)
     df = cda.merge_for_repeat(df, app)
-    # df = cda.add_flops(df, app)
+    df = cda.add_flops(df, app)
     df = cda.process_workload_size(df, app)
-    df = cda.make_ratios(df, app)
+    # df = cda.make_ratios(df, app)
+    df = cda.norm_hardware(df)
     return df
