@@ -1,0 +1,19 @@
+app: sgemv-airbender
+clusters: 1
+cores: 16
+dcache_banks: 16
+dcache_ports: 1
+dcache_size: 4194304
+driver: simx
+kernel: 
+  - sgemv
+l2cache: false
+optimize: 1
+repeat:
+- 1
+- 2
+ssr_credits: 16
+threads: 16
+warps: 8
+workload_size_x: "9192:409600:40959"
+workload_size_y: 8
