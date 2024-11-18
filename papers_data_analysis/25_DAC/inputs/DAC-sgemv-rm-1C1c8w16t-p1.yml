@@ -1,8 +1,8 @@
 app: sgemv-airbender
 clusters: 1
 cores: 1
-dcache_banks: 1024
-dcache_ports: 2
+dcache_banks: 16
+dcache_ports: 1
 dcache_size: 4194304
 driver: simx
 kernel: 

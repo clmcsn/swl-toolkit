@@ -1,13 +1,12 @@
-app: sgemm-airbender
+app: sgemv-airbender
 clusters: 1
 cores: 1
-dcache_banks: 1024
+dcache_banks: 32
 dcache_ports: 2
 dcache_size: 4194304
 driver: simx
-kernel:
-- sgemm-ssr3
-- sgemm
+kernel: 
+  - sgemv
 l2cache: false
 optimize: 1
 repeat:
@@ -16,6 +15,5 @@ repeat:
 ssr_credits: 16
 threads: 16
 warps: 8
-workload_size_x: 64
-workload_size_y: "8:100:8"
-workload_size_z: 8
+workload_size_x: "512:25600:2559"
+workload_size_y: 8

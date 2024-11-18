@@ -1,0 +1,18 @@
+app: saxpy-airbender
+clusters: 1
+cores: 1
+dcache_banks: 64
+dcache_ports: 2
+dcache_size: 4194304
+driver: simx
+kernel:
+- saxpy-ssr3
+l2cache: false
+optimize: '-1'
+repeat:
+- 1
+- 2
+ssr_credits: 16
+threads: 32
+warps: 16
+workload_size: "2024:102400:10239"

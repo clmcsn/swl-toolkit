@@ -1,0 +1,20 @@
+app: sfilter-airbender
+clusters: 1
+cores: 1
+dcache_banks: 32
+dcache_ports: 1
+dcache_size: 4194304
+driver: simx
+kernel:
+- sfilter-ssr3
+- sfilter
+l2cache: false
+optimize: 1
+repeat:
+- 1
+- 2
+ssr_credits: 16
+threads: 32
+warps: 16
+workload_size_x: 256
+workload_size_y: "8:100:8"
