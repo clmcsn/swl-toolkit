@@ -1,0 +1,22 @@
+app: conv2d-airbender
+clusters: 1
+cores: 1
+dcache_banks: 128
+dcache_ports: 3
+dcache_size: 4194304
+driver: simx
+in_channels: 8
+kernel:
+- conv2d-ssr3
+- conv2d-asm
+l2cache: false
+optimize: 1
+out_channels: 8
+repeat:
+- 1
+- 2
+ssr_credits: 16
+threads: 32
+warps: 4
+workload_size_x: 8
+workload_size_y: "8:100:8"

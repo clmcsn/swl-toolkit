@@ -2,6 +2,7 @@
 
 import os
 import sys
+import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,7 +50,7 @@ def gen_intercore_df(df: pd.DataFrame) -> pd.DataFrame:
             final_df = pd.concat([final_df, pd.DataFrame({'threads': [t],
                                                           't_coord': [t/16],
                                                           'warps': [w],
-                                                          'w_coord': [w/8],
+                                                          'w_coord': [math.log2(w)-1],
                                                           'speedup': [speedup]})])
     # order the final_df
     final_df = final_df.sort_values(by=['threads', 'warps'])
@@ -80,19 +81,19 @@ def gen_plot(df: pd.DataFrame, plots_dir: str, figure_name: str):
     ax.set_xlabel('Warps')
     ax.set_ylabel('Threads')
     ax.set_zlabel('Avg. Speedup')
-    ax.set_xticks([1.5, 2.5])
+    ax.set_xticks([1.5, 2.5, 3.5])
     ax.set_yticks([1.5, 2.5])
     ax.set_yticklabels([16, 32])
-    ax.set_xticklabels([8, 16])
+    ax.set_xticklabels([4, 8, 16])
     # Add title as text ################################################
-    ax.text(1.5, 2.5, 15, 'Sub-core scalability', color='black',
+    ax.text(3, 2.5, 18.5, 'Sub-core scalability', color='black',
             fontsize=12, ha='center', va='center')
     # Set the view angle and zoom ########################################
-    ax.view_init(30, 120)
+    ax.view_init(30, 50)
     ax.set_box_aspect(aspect=None, zoom=0.8)
     # Add bar values ################################################
     for i in range(len(ic_df)):
-        ax.text(ic_df['w_coord'].iloc[i]+0.49, ic_df['t_coord'].iloc[i]+0.39,
+        ax.text(ic_df['w_coord'].iloc[i]+0.27, ic_df['t_coord'].iloc[i]+0.25,
                 ic_df['speedup'].iloc[i], '%.1f' % ic_df['speedup'].iloc[i],
                 color='black', fontsize=12, ha='center', va='top', fontweight='bold')
 
