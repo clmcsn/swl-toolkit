@@ -28,22 +28,36 @@ def gen_outercore_df(df: pd.DataFrame) -> pd.DataFrame:
     # Remove all dcache_banks <=128
     cdf = df[df['dcache_banks'] > 128]
     # Remove all kernels that don't end with '-ssr3
-    cdf = cdf[cdf['kernel'].str.endswith('-ssr3')]
+    cdf = cdf[cdf['kernel'].str.endswith('-ssr3') |
+              cdf['kernel'].isin(CDEFS.BASE_KERNELS.values())]
     summary_df = pd.DataFrame()
     # Makeing speedup summary df, app is at this stage only for debug purposes
-    for app in cdf['app'].unique():
+    for k in cdf['kernel'].unique():
         for c in cdf['cores'].unique():
             speedup = cdf[(cdf['cores'] == c) &
-                          (cdf['app'] == app)]['cycles_ratio'].mean()
-            summary_df = pd.concat([summary_df, pd.DataFrame({'app': [app],
+                          (cdf['kernel'] == k)]['cycles_ratio'].mean()
+            FLOP = cdf[(cdf['cores'] == c) &
+                       (cdf['kernel'] == k)]['flops'].sum()
+            cycles = cdf[(cdf['cores'] == c) &
+                         (cdf['kernel'] == k)]['cycles'].sum()
+            is_base_kernel = k in CDEFS.BASE_KERNELS.values()
+            summary_df = pd.concat([summary_df, pd.DataFrame({'kernel': [k],
                                                               'cores': [c],
-                                                              'speedup': [speedup]})])
+                                                              'speedup': [speedup],
+                                                              'FLOP': [FLOP],
+                                                              'cycles': [cycles],
+                                                              'is_base': [is_base_kernel]})])
+    summary_df['FLOP/cycle'] = summary_df['FLOP']/summary_df['cycles']
     print(summary_df.to_string())  # for debug purposes
     core_df = pd.DataFrame()
-    for c in summary_df['cores'].unique():
-        speedup = summary_df[summary_df['cores'] == c]['speedup'].mean()
-        core_df = pd.concat([core_df, pd.DataFrame({'cores': [c],
-                                                    'speedup': [speedup]})])
+    for b in summary_df['is_base'].unique():
+        for c in summary_df['cores'].unique():
+            speedup = summary_df[summary_df['cores'] == c]['speedup'].mean()
+            flop_cycle = summary_df[summary_df['cores'] == c]['FLOP/cycle'].mean()
+            core_df = pd.concat([core_df, pd.DataFrame({'cores': [c],
+                                                        'speedup': [speedup],
+                                                        'flop_cycle': [flop_cycle],
+                                                        'is_base': [b]})])
     # order the core_df
     core_df = core_df.sort_values(by=['cores'])
     print(core_df.to_string())  # for debug purposes

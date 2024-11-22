@@ -24,7 +24,7 @@ def get_dataframe(path: str, dir_name: str) -> pd.DataFrame:
     df = pd.read_feather(df_file)
     app = get_app_name(dir_name)
     df = cda.merge_for_repeat(df, app)
-    # df = cda.add_flops(df, app)
+    df = cda.add_flops(df, app)
     df = cda.process_workload_size(df, app)
     df = cda.make_ratios(df, app)
     return df

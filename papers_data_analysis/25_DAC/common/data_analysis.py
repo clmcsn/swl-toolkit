@@ -12,7 +12,7 @@ def merge_for_repeat(df: pd.DataFrame, app: str) -> pd.DataFrame:
                          suffixes=('_r1', '_r2'))
     # Process metrics
     for metric in CDEFS.METRICS:
-        df_merged[metric] = CDEFS.METRIC_RED_FUNC[metric](df_merged[metric + '_r2'], 
+        df_merged[metric] = CDEFS.METRIC_RED_FUNC[metric](df_merged[metric + '_r2'],
                                                           df_merged[metric + '_r1'])
         # Remove outliers
         df_merged[metric] = df_merged[metric].mask(df_merged[metric] <= 0).ffill()
